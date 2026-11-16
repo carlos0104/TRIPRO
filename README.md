@@ -60,3 +60,14 @@ Baixe o ícone oficial na página de identidade visual do *Sign in with Google* 
 
 ## App instalável (PWA)
 `manifest.webmanifest`, `sw.js` e a pasta `icons/`. O service worker guarda só a casca do app; dados e login vão sempre direto ao Supabase. Ao publicar uma versão nova, troque `VERSAO` em `sw.js` para os aparelhos atualizarem.
+
+## Quadro, sprints, agenda e resumo do dia (versão 3)
+
+Migrações novas: `008_kanban_sprints_agenda.sql` e `009_resumos_e_agenda.sql` (já aplicadas no projeto). Edge Functions: `notificar` (v3) e `agenda`.
+
+- **Quadro (kanban):** colunas A fazer, Fazendo, Em revisão e Concluída. Arraste os cartões no computador; no celular, abra a tarefa e use "Mover para". Mover para Concluída lança 100% e dispara o e-mail. Para reabrir, lance um avanço menor que 100%.
+- **Sprints:** crie, inicie e conclua. Ao concluir, o que sobrou vai para a próxima sprint ou volta ao backlog. Só uma sprint ativa por vez.
+- **Tarefas:** abas Detalhes, Subtarefas (checklist) e Anexos (imagem ou PDF, até 10 MB, no Storage privado `anexos`, aberto por link temporário de 1 hora).
+- **Agenda:** eventos manuais + prazos + sprints. Cada evento tem "Google Agenda", "Outlook" e ".ics". Em Configurações > Agenda, cada pessoa gera um link iCal pessoal para assinar no Google Agenda ou no Outlook (mão única; o Google atualiza a cada 8 a 24 h).
+- **Resumo do dia:** gerado às 7h15 (cron `tripro-resumo-ia`) e incluído no e-mail das 7h30. Sem chave de IA, sai um resumo por regras fixas (custo zero). Para usar IA gratuita, crie uma chave no Google AI Studio e cadastre o segredo `GEMINI_API_KEY` nas Edge Functions (opcional: `GEMINI_MODELO`, padrão `gemini-2.5-flash`). Atenção: no plano gratuito do Gemini, o Google pode usar os dados enviados para melhorar os produtos dele.
+- **Seletor de projeto:** no topo (atalho Ctrl+K), com busca. Vale para todas as telas.
