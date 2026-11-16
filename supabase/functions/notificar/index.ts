@@ -88,25 +88,27 @@ ${v.observacao ? `<p style="background:#F7F8FC;border-radius:8px;padding:10px 12
 }
 
 /* ---------- resumo do dia: fatos calculados + texto da IA (Gemini, se houver chave) ---------- */
-async function fatosDoDia(dia: string) {
-  const { projetos, tarefas, avancos } = await carregar();
+async function fatosDoDia(dia: string, pid = "") {
+  const tudo = await carregar(), avancos = tudo.avancos;
+  const projetos = pid ? tudo.projetos.filter((p) => p.id === pid) : tudo.projetos, tarefas = pid ? tudo.tarefas.filter((x) => x.projeto_id === pid) : tudo.tarefas;
   const { data: sprints } = await sb.from("sprints").select("*");
   const desde = new Date(Date.now() - 24 * 3600e3).toISOString(), ontem = new Date(t(dia) - DIA).toISOString().slice(0, 10);
-  const { data: coms } = await sb.from("comentarios").select("tarefa_id,texto,autor").gte("criado_em", desde);
+  const { data: coms0 } = await sb.from("comentarios").select("tarefa_id,texto,autor").gte("criado_em", desde);
+  const coms = (coms0 ?? []).filter((c) => tarefas.some((x) => x.id === c.tarefa_id));
   const nomeP = (id: string) => projetos.find((p) => p.id === id)?.nome ?? id;
   const ent = (id: string) => tarefas.find((x) => x.id === id);
   const at = (sprints as Sprint[] ?? []).find((s) => s.status === "ativa");
   const doSprint = at ? tarefas.filter((x) => x.sprint_id === at.id) : [];
   return {
-    dia,
+    dia, escopo: pid ? `projeto ${projetos[0]?.nome ?? pid}` : "todos os projetos",
     projetos: projetos.filter((p) => p.status !== "concluido").map((p) => { const ts = tarefas.filter((x) => x.projeto_id === p.id), k = curva(ts, avancos, dia);
       return { nome: p.nome, planejado: Math.round(k.planejado), realizado: Math.round(k.realizado), entregas: ts.length, concluidas: ts.filter((x) => atual(avancos, x.id) >= 100).length }; }),
     sprint: at ? { nome: at.nome, objetivo: at.objetivo, fim: at.fim, dias_restantes: Math.round((t(at.fim) - t(dia)) / DIA),
       total: doSprint.length, concluidas: doSprint.filter((x) => x.estado === "concluida").length, em_revisao: doSprint.filter((x) => x.estado === "revisao").length, fazendo: doSprint.filter((x) => x.estado === "fazendo").length } : null,
-    concluidas_desde_ontem: avancos.filter((v) => v.data >= ontem && Number(v.percentual) >= 100 && v.autor !== "carga inicial").map((v) => ({ entrega: ent(v.tarefa_id)?.entrega, projeto: nomeP(ent(v.tarefa_id)?.projeto_id ?? "") })),
+    concluidas_desde_ontem: avancos.filter((v) => ent(v.tarefa_id) && v.data >= ontem && Number(v.percentual) >= 100 && v.autor !== "carga inicial").map((v) => ({ entrega: ent(v.tarefa_id)?.entrega, projeto: nomeP(ent(v.tarefa_id)?.projeto_id ?? "") })),
     atrasadas: tarefas.filter((x) => x.fim_previsto < dia && atual(avancos, x.id) < 100).map((x) => ({ entrega: x.entrega, projeto: nomeP(x.projeto_id), responsavel: x.responsavel, previsto: x.fim_previsto, dias_atraso: Math.round((t(dia) - t(x.fim_previsto)) / DIA), avanco: atual(avancos, x.id) })),
     vencem_em_3_dias: tarefas.filter((x) => x.fim_previsto >= dia && t(x.fim_previsto) <= t(dia) + 3 * DIA && atual(avancos, x.id) < 100).map((x) => ({ entrega: x.entrega, projeto: nomeP(x.projeto_id), responsavel: x.responsavel, previsto: x.fim_previsto, avanco: atual(avancos, x.id) })),
-    comentarios_24h: (coms ?? []).map((c) => ({ entrega: ent(c.tarefa_id)?.entrega, autor: c.autor, texto: String(c.texto).slice(0, 300) })),
+    comentarios_24h: coms.map((c) => ({ entrega: ent(c.tarefa_id)?.entrega, autor: c.autor, texto: String(c.texto).slice(0, 300) })),
   };
 }
 function resumoPorRegras(f: Awaited<ReturnType<typeof fatosDoDia>>) {
@@ -120,14 +122,10 @@ function resumoPorRegras(f: Awaited<ReturnType<typeof fatosDoDia>>) {
   if (ruins.length) L.push(`Abaixo do plano: ${ruins.map((p) => p.nome).join(", ")}.`);
   return L.join("\n");
 }
-async function resumoPorIA(f: unknown) {
-  const prompt = `Você é o assistente de gestão de projetos da Trium. Com base SOMENTE nos dados JSON abaixo, escreva o resumo do dia em português do Brasil para os sócios.
-Formato: 1 parágrafo curto (até 3 frases) com o panorama geral; depois até 4 linhas começando com "• " com os pontos de atenção e o que fazer hoje. Sem títulos, sem markdown além de "• ", até 120 palavras. Não invente nomes, números ou datas que não estejam nos dados. Datas no formato dd/mm.
-DADOS:
-${JSON.stringify(f)}`;
+async function gemini(prompt: string, max = 600) {
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODELO}:generateContent`, {
     method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": GEMINI },
-    body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.3, maxOutputTokens: 600 } }),
+    body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.3, maxOutputTokens: max } }),
   });
   if (!r.ok) throw new Error(`Gemini ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const j = await r.json();
@@ -135,16 +133,44 @@ ${JSON.stringify(f)}`;
   if (!txt) throw new Error("Gemini sem texto");
   return txt;
 }
+async function resumoPorIA(f: { escopo: string }) {
+  const prompt = `Você é o assistente de gestão de projetos da Trium. Com base SOMENTE nos dados JSON abaixo (escopo: ${f.escopo}), escreva o resumo do dia em português do Brasil para os sócios.
+Formato: 1 parágrafo curto (até 3 frases) com o panorama geral; depois até 4 linhas começando com "• " com os pontos de atenção e o que fazer hoje. Sem títulos, sem markdown além de "• ", até 120 palavras. Não invente nomes, números ou datas que não estejam nos dados. Datas no formato dd/mm.
+DADOS:
+${JSON.stringify(f)}`;
+  return await gemini(prompt);
+}
+/* pergunta livre sobre os projetos (só aprovados; só com chave da IA) */
+async function perguntar(pergunta: string, pid: string) {
+  if (!GEMINI) return { erro: "A IA ainda não foi configurada (segredo GEMINI_API_KEY no Supabase)." };
+  const q = String(pergunta ?? "").trim().slice(0, 500);
+  if (!q) return { erro: "Escreva uma pergunta." };
+  const dia = hojeSP(), f = await fatosDoDia(dia, pid);
+  const { projetos, tarefas, avancos } = await carregar();
+  const { data: sprints } = await sb.from("sprints").select("id,nome,inicio,fim,status");
+  const lista = tarefas.filter((x) => !pid || x.projeto_id === pid).map((x) => ({ entrega: x.entrega, projeto: projetos.find((p) => p.id === x.projeto_id)?.nome, modulo: x.modulo, responsavel: x.responsavel, estado: x.estado, prioridade: x.prioridade, inicio: x.inicio_previsto, prazo: x.fim_previsto, avanco: atual(avancos, x.id), sprint: (sprints ?? []).find((s) => s.id === x.sprint_id)?.nome ?? "backlog" }));
+  const prompt = `Você é o assistente do TRIPRO, app de acompanhamento dos projetos da Trium. Hoje é ${dia}. Responda em português do Brasil, direto e curto (até 120 palavras), usando SOMENTE os dados JSON abaixo. Se a resposta não estiver nos dados, diga que não há essa informação no TRIPRO. Pode usar linhas começando com "• " para listas. Datas no formato dd/mm. Não invente nada.
+RESUMO: ${JSON.stringify(f)}
+TAREFAS: ${JSON.stringify(lista)}
+SPRINTS: ${JSON.stringify(sprints ?? [])}
+PERGUNTA: ${q}`;
+  return { resposta: await gemini(prompt, 700) };
+}
 async function gerarResumo(forcar: boolean) {
   const dia = hojeSP();
-  const { data: ja } = await sb.from("resumos").select("dia,criado_em").eq("dia", dia).maybeSingle();
+  const { data: ja } = await sb.from("resumos").select("dia,criado_em").eq("dia", dia).eq("projeto_id", "").maybeSingle();
   if (ja && (!forcar || Date.now() - Date.parse(ja.criado_em) < 5 * 60e3)) return { gerado: false, aviso: "resumo de hoje já existe" };
-  const f = await fatosDoDia(dia);
-  let texto = "", fonte: "ia" | "regras" = "regras";
-  if (GEMINI) { try { texto = await resumoPorIA(f); fonte = "ia"; } catch (e) { console.error(e); } }
-  if (!texto) texto = resumoPorRegras(f);
-  await sb.from("resumos").upsert({ dia, texto, fonte, criado_em: new Date().toISOString() });
-  return { gerado: true, fonte };
+  const { data: ps } = await sb.from("projetos").select("id").neq("status", "concluido");
+  let fonteGeral: "ia" | "regras" = "regras";
+  for (const pid of ["", ...(ps ?? []).map((p) => p.id as string)]) {
+    const f = await fatosDoDia(dia, pid);
+    let texto = "", fonte: "ia" | "regras" = "regras";
+    if (GEMINI) { try { texto = await resumoPorIA(f); fonte = "ia"; } catch (e) { console.error(e); } }
+    if (!texto) texto = resumoPorRegras(f);
+    if (!pid) fonteGeral = fonte;
+    await sb.from("resumos").upsert({ dia, projeto_id: pid, texto, fonte, criado_em: new Date().toISOString() });
+  }
+  return { gerado: true, fonte: fonteGeral };
 }
 async function quemChama(req: Request) {
   const tk = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
@@ -153,6 +179,25 @@ async function quemChama(req: Request) {
   if (!data?.user) return null;
   const { data: m } = await sb.from("membros").select("status").eq("user_id", data.user.id).maybeSingle();
   return m?.status === "aprovado" ? data.user : null;
+}
+
+/* ---------- notificações por e-mail (menções e convites de evento) ---------- */
+async function notificacoes() {
+  if (!RESEND) return { enviados: 0, aviso: "RESEND_API_KEY não configurada" };
+  const { data: pend } = await sb.from("notificacoes").select("*").is("email_em", null).in("tipo", ["mencao", "evento"]).order("id").limit(50);
+  let n = 0;
+  for (const k of pend ?? []) {
+    const { data: marc } = await sb.from("notificacoes").update({ email_em: new Date().toISOString() }).eq("id", k.id).is("email_em", null).select("id");
+    if (!marc?.length) continue;
+    const { data: m } = await sb.from("membros").select("email,status").eq("user_id", k.user_id).maybeSingle();
+    if (!m || m.status !== "aprovado") continue;
+    let ctx = "";
+    if (k.tarefa_id) { const { data: x } = await sb.from("tarefas").select("entrega").eq("id", k.tarefa_id).maybeSingle(); if (x) ctx = `<p style="color:#5B6683;margin:0 0 8px">Na tarefa <b>${esc(x.entrega)}</b></p>`; }
+    const corpo = ctx + (k.texto ? `<p style="background:#F1F6FF;border-radius:10px;padding:12px 14px;white-space:pre-line">${esc(k.texto)}</p>` : "");
+    try { await enviar([m.email], `TRIPRO · ${k.titulo}`, moldura(esc(k.titulo), corpo)); n++; }
+    catch (e) { await sb.from("notificacoes").update({ email_em: null }).eq("id", k.id); throw e; }
+  }
+  return { enviados: n };
 }
 
 async function resumo() {
@@ -166,7 +211,7 @@ async function resumo() {
     if (!para.length) return { enviado: false, aviso: "ninguém para receber" };
     const ontem = new Date(t(dia) - DIA).toISOString().slice(0, 10);
     await gerarResumo(false).catch((e) => console.error(e));
-    const { data: rs } = await sb.from("resumos").select("texto").eq("dia", dia).maybeSingle();
+    const { data: rs } = await sb.from("resumos").select("texto").eq("dia", dia).eq("projeto_id", "").maybeSingle();
     const ativos = projetos.filter((p) => p.status !== "concluido");
     const tabela = `<table style="width:100%;border-collapse:collapse;margin:6px 0 16px;font-size:13px"><tr style="color:#5B6683;text-align:left"><th style="padding:6px 0">Projeto</th><th style="text-align:right">Planejado</th><th style="text-align:right">Realizado</th></tr>${ativos.map((p) => { const k = curva(tarefas.filter((x) => x.projeto_id === p.id), avancos, dia); return `<tr style="border-top:1px solid #EDF0F6"><td style="padding:7px 0;font-weight:bold">${esc(p.nome)}</td><td style="text-align:right">${pct(k.planejado)}</td><td style="text-align:right;font-weight:bold;color:${k.realizado >= k.planejado - 2 ? "#137A55" : "#C3313F"}">${pct(k.realizado)}</td></tr>`; }).join("")}</table>`;
     const tag = (tid: string) => { const t0 = tarefas.find((x) => x.id === tid); const p = projetos.find((k) => k.id === t0?.projeto_id); return p ? `<span style="color:#335CFF;font-weight:bold">${esc(p.nome)}</span> · ` : ""; };
@@ -180,7 +225,8 @@ async function resumo() {
     const { data: coms } = await sb.from("comentarios").select("tarefa_id,texto,autor,criado_em").gte("criado_em", desde).order("criado_em");
     const nome = (id: string) => tag(id) + esc(tarefas.find((x) => x.id === id)?.entrega ?? id);
     const lista = (itens: string[], vazio: string) => itens.length ? `<ul style="padding-left:18px;margin:6px 0 14px">${itens.map((i) => `<li style="margin:4px 0">${i}</li>`).join("")}</ul>` : `<p style="color:#5B6683;margin:6px 0 14px">${vazio}</p>`;
-    const corpo = (rs?.texto ? `<div style="background:#F1F6FF;border-radius:10px;padding:12px 14px;margin-bottom:16px;white-space:pre-line">${esc(rs.texto)}</div>` : "") +
+    const linhas = String(rs?.texto ?? "").split("\n").map((l: string) => l.trim()).filter(Boolean), par = linhas.filter((l: string) => !/^[•\-*]\s*/.test(l)), pts = linhas.filter((l: string) => /^[•\-*]\s*/.test(l)).map((l: string) => l.replace(/^[•\-*]\s*/, ""));
+    const corpo = (rs?.texto ? `<div style="background:#F1F6FF;border-radius:10px;padding:12px 14px;margin-bottom:16px">${par.map((p: string) => `<p style="margin:0 0 8px">${esc(p)}</p>`).join("")}${pts.length ? `<ul style="margin:0;padding-left:18px">${pts.map((p: string) => `<li style="margin:4px 0">${esc(p)}</li>`).join("")}</ul>` : ""}</div>` : "") +
       `<p style="margin:0"><b>Projetos</b></p>` + tabela +
       `<p style="margin:0"><b>Concluídas desde ontem</b></p>` + lista(concl.map((v) => `${nome(v.tarefa_id)} <span style="color:#5B6683">· ${esc(v.autor ?? "")}</span>`), "Nenhuma.") +
       `<p style="margin:0"><b>Outros avanços</b></p>` + lista(outros.map((v) => `${nome(v.tarefa_id)}: ${pct(Number(v.percentual))}`), "Nenhum.") +
@@ -197,9 +243,12 @@ const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
   try {
-    const { tipo } = await req.json().catch(() => ({ tipo: "" }));
+    const corpo = await req.json().catch(() => ({ tipo: "" }));
+    const { tipo } = corpo;
     if (tipo === "resumo_ia") { const u = await quemChama(req); return json(await gerarResumo(!!u)); }
+    if (tipo === "perguntar") { const u = await quemChama(req); if (!u) return json({ erro: "acesso não aprovado" }, 401); return json(await perguntar(corpo.pergunta, corpo.projeto_id ?? "")); }
     if (tipo === "conclusao") return json(await conclusoes());
+    if (tipo === "notificacoes") return json(await notificacoes());
     if (tipo === "resumo") return json(await resumo());
     return json({ erro: "tipo inválido" }, 400);
   } catch (e) { console.error(e); return json({ erro: String((e as Error).message ?? e) }, 500); }

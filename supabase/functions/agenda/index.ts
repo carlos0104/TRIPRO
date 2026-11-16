@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     `SUMMARY:${esc(e.titulo)}`, ...(e.local ? [`LOCATION:${esc(e.local)}`] : []),
     `DESCRIPTION:${esc([e.projeto && "Projeto: " + e.projeto, e.descricao].filter(Boolean).join("\n"))}`]);
   for (const p of d.prazos) ev(`prazo-${p.id}`, [`DTSTART;VALUE=DATE:${dia(p.fim)}`, `DTEND;VALUE=DATE:${proxDia(p.fim)}`, "TRANSP:TRANSPARENT",
-    `SUMMARY:${esc((p.estado === "concluida" ? "✓ " : "Prazo: ") + p.entrega)}`, `DESCRIPTION:${esc(`Projeto: ${p.projeto}\nResponsável: ${p.responsavel}`)}`]);
+    `SUMMARY:${esc((p.estado === "concluida" ? "Entregue: " : "Prazo: ") + p.entrega)}`, `DESCRIPTION:${esc(`Projeto: ${p.projeto}\nResponsável: ${p.responsavel}`)}`]);
   for (const s of d.sprints) ev(`sprint-${s.id}`, [`DTSTART;VALUE=DATE:${dia(s.inicio)}`, `DTEND;VALUE=DATE:${proxDia(s.fim)}`, "TRANSP:TRANSPARENT",
     `SUMMARY:${esc("Sprint · " + s.nome)}`, ...(s.objetivo ? [`DESCRIPTION:${esc(s.objetivo)}`] : [])]);
   L.push("END:VCALENDAR");

@@ -71,3 +71,16 @@ Migrações novas: `008_kanban_sprints_agenda.sql` e `009_resumos_e_agenda.sql` 
 - **Agenda:** eventos manuais + prazos + sprints. Cada evento tem "Google Agenda", "Outlook" e ".ics". Em Configurações > Agenda, cada pessoa gera um link iCal pessoal para assinar no Google Agenda ou no Outlook (mão única; o Google atualiza a cada 8 a 24 h).
 - **Resumo do dia:** gerado às 7h15 (cron `tripro-resumo-ia`) e incluído no e-mail das 7h30. Sem chave de IA, sai um resumo por regras fixas (custo zero). Para usar IA gratuita, crie uma chave no Google AI Studio e cadastre o segredo `GEMINI_API_KEY` nas Edge Functions (opcional: `GEMINI_MODELO`, padrão `gemini-2.5-flash`). Atenção: no plano gratuito do Gemini, o Google pode usar os dados enviados para melhorar os produtos dele.
 - **Seletor de projeto:** no topo (atalho Ctrl+K), com busca. Vale para todas as telas.
+
+## Versão 4: mais inteligente e reorganizada
+
+Migração nova: `011_convites_mencoes_notificacoes.sql` (já aplicada). Função `notificar` v4 (resumo por projeto, perguntas à IA, e-mail de menções).
+
+- **Menu:** Hoje · Trabalho (Quadro, Agenda, Sprints) · Acompanhamento (Projetos e Curva S, Todas as tarefas) · Equipe (Conversas, Usuários e acessos) · Ajuda, Configurações e Sair.
+- **Hoje:** resumo do dia (geral ou do projeto escolhido), "Precisa de atenção" (atrasos, tarefas paradas há 7 dias, sprint em risco, sobrecarga, projeto abaixo do plano, backlog), minhas tarefas, agenda de hoje e sprint ativa.
+- **Barra inteligente (Ctrl+K):** busca tarefas, projetos e telas; cria tarefa por frase (`Tela de login sexta @Rafael #CRM !alta`); pergunta à IA (`o que está atrasado?`).
+- **Subtarefas** calculam o avanço sozinhas; com todas feitas, a tarefa vai para Em revisão (95%) até alguém mover para Concluída.
+- **Conversas:** novo comentário com @menção; a pessoa recebe notificação (sino) e e-mail.
+- **Usuários:** convidar por e-mail (entra já aprovado), aprovar, rejeitar, bloquear, desbloquear e remover.
+- **Agenda do time:** filtros por projeto, responsável e situação; reuniões minhas e da equipe; prazos com a cor da situação; participantes notificados.
+- **Tema claro/escuro, tour guiado e manual** (menu Ajuda).
