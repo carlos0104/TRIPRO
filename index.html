@@ -100,6 +100,7 @@ svg{flex:none}
 .lgf{display:flex;flex-direction:column;gap:14px;margin-top:clamp(20px,2.2vw,32px)}
 .lgi{height:50px;font-size:15.5px;border-radius:12px}
 .lgb{height:clamp(50px,3.1vw,56px);border-radius:12px;font-size:16px}
+@media (max-width:600px){.set{flex-wrap:wrap}.set>.seg{flex:1 1 100%}.set>.seg button{flex:1}}
 .lnk{color:var(--blue);font-weight:600;font-size:14px;padding:0}.lnk:hover{text-decoration:underline}
 .lgalt{margin-top:18px;text-align:center;font-size:14.5px;color:var(--muted)}
 .ou{display:flex;align-items:center;gap:12px;color:var(--faint);font-size:13px;margin:20px 0 0}.ou::before,.ou::after{content:"";flex:1;border-top:1px solid var(--line)}
@@ -487,6 +488,32 @@ a.cmd-o{text-decoration:none;color:inherit}a.cmd-o>svg{color:var(--faint)}
 @keyframes r{to{transform:rotate(360deg)}}
 @media (max-width:959px){.kpis{grid-template-columns:1fr 1fr;gap:10px}.kpi{padding:12px 13px}.tabs .search{display:none}.filters>*{flex:1 1 140px}.filters .search .sel{width:100%}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* v5: previsões, bloqueios, dependências, decisões */
+.pv{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.pv-ch{display:flex;flex-direction:column;align-items:center;justify-content:center;width:118px;height:118px;border-radius:50%;flex:none;text-align:center;padding:14px;background:radial-gradient(closest-side,var(--surface) 78%,transparent 80% 100%),conic-gradient(var(--c) calc(var(--p,0)*1%),var(--neu-bg) 0)}
+.pv-ch b{font-size:28px;font-weight:700;color:var(--c);letter-spacing:-.02em;line-height:1}.pv-ch span{font-size:11px;color:var(--muted);line-height:1.25;margin-top:4px}
+.pv-d{flex:1;min-width:180px;display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.pv-d>div{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pv-d span{font-size:12px;color:var(--muted)}.pv-d b{font-size:17px;color:var(--ink);font-weight:700}.pv-d small{font-size:11.5px;color:var(--muted)}
+.pv-d.c4{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.blk{display:flex;gap:12px;align-items:flex-start;background:var(--crit-bg);color:var(--crit);border-radius:12px;padding:12px 14px}
+.blk>div{flex:1;min-width:0}.blk b{display:block}.blk p{color:var(--text);margin:2px 0;font-size:13.5px}
+.kc.blq{border-color:var(--crit);box-shadow:inset 3px 0 0 var(--crit)}
+.kc-t .pill svg{margin-right:-1px}
+.dep{display:flex;gap:8px;align-items:center;padding:7px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer;font-size:13.5px;color:var(--ink)}.dep:hover{background:var(--hover)}
+.cod{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:var(--sky);color:var(--blue);padding:4px 9px;border-radius:7px;font-weight:600}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;background:var(--neu-bg);padding:1px 5px;border-radius:5px}
+.cmt{display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:13px;min-width:0;flex-wrap:wrap}.cmt>span:nth-child(2){flex:1;min-width:120px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips:empty{display:none}
+.chip{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 4px 0 10px;border-radius:14px;background:var(--sky);color:var(--ink);font-size:12.5px;font-weight:500;max-width:100%}
+.chip button{border:0;background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center;width:22px;height:22px;border-radius:50%}.chip button:hover{background:var(--line)}
+.ckl{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px;color:var(--ink);cursor:pointer}.ckl input{margin-top:3px;accent-color:var(--blue);width:16px;height:16px;flex:none}
+.cap{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px}
+.cap>div{display:flex;flex-direction:column;gap:5px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13.5px;color:var(--ink)}
+.cap .bar{flex:none;width:100%}.bar i.crit{background:var(--crit)}
+.bar i.warn{background:var(--warn)}
+.li.dec{align-items:flex-start}.li.dec .bx{flex:1;min-width:0}.dic{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--sky);color:var(--blue)}
+.lnk{border:0;background:none;color:var(--blue);font-weight:600;cursor:pointer;padding:0;text-decoration:underline;font:inherit}
 </style>
 </head>
 <body>
@@ -615,7 +642,7 @@ const API = {
     const r = await Promise.all([
       sb.from('projetos').select('*').order('ordem').order('nome'),
       sb.from('tarefas').select('*').order('inicio_previsto').order('id'),
-      sb.from('avancos').select('id,tarefa_id,data,percentual,observacao,autor,criado_em').order('data').order('id'),
+      sb.from('avancos').select('id,tarefa_id,data,percentual,observacao,autor,criado_em,horas').order('data').order('id'),
       sb.from('comentarios').select('id,tarefa_id,texto,autor,autor_id,mencoes,criado_em').order('criado_em'),
       sb.from('sprints').select('*').order('inicio'),
       sb.from('subtarefas').select('*').order('ordem').order('id'),
@@ -626,7 +653,7 @@ const API = {
       sb.from('notificacoes').select('*').order('criado_em', {ascending:false}).limit(60),
     ]);
     const [p, t, a, c, s, st, ax, ev, rs, ps, nt] = r.map(ok);
-    D = {projetos:p, tarefas:t.map(x => ({...x, peso:Number(x.peso)})), avancos:a.map(x => ({...x, percentual:Number(x.percentual)})), comentarios:c, sprints:s, subtarefas:st, anexos:ax, eventos:ev};
+    D = {projetos:p, tarefas:t.map(x => ({...x, peso:Number(x.peso)})), avancos:a.map(x => ({...x, percentual:Number(x.percentual), horas:x.horas === null ? null : Number(x.horas)})), comentarios:c, sprints:s, subtarefas:st, anexos:ax, eventos:ev};
     RESUMOS = rs; PESSOAS = ps || []; NOTIF = nt || [];
     if (ME.papel === 'admin'){ MEMBROS = ok(await sb.from('membros').select('*').order('criado_em', {ascending:false})) || []; CONVITES = ok(await sb.from('convites').select('*').order('criado_em', {ascending:false})) || []; }
   },
@@ -1264,6 +1291,402 @@ function telaAjuda(){
     <section class="card">${MANUAL.map(([id, ico, t, ps], i) => `<details id="m-${id}" ${i === 0 ? 'open' : ''}><summary><span class="sico">${isvg(ico)}</span>${t}<span class="ch2">${isvg('down')}</span></summary><div class="tx2">${ps.map(p => p.startsWith('<') ? p : `<p>${p}</p>`).join('')}</div></details>`).join('')}</section></div>
     <section class="card card-b row"><span class="hic" style="width:32px;height:32px;border-radius:9px;display:grid;place-items:center;background:var(--sky);color:var(--blue)">${isvg('spark')}</span><div style="flex:1;min-width:200px"><b style="color:var(--ink)">Ainda com dúvida?</b><div class="sub">Pergunte para a IA na barra de comando (Ctrl + K) ou fale com o administrador.</div></div><button class="btn" data-a="cmd-ia">Perguntar à IA</button></section>`);
 }
+
+/* ================= inteligência v5: previsão, calibração, dependências, custo, bloqueios, decisões, GitHub, cliente ================= */
+let CUSTOS = [], LINKS = [];
+Object.assign(ICO, {
+  dice: ic('<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/>'),
+  flag: ic('<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>'),
+  git: ic('<circle cx="6" cy="6" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="9" r="2.2"/><path d="M6 8.2v7.6M18 11.2c0 3-3 3.8-9.8 5.6"/>'),
+  money: ic('<rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9.5v5M17.5 9.5v5"/>'),
+  chain: ic('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+  block: ic('<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>'),
+  share: ic('<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/>'),
+  copy: ic('<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>'),
+});
+['dependencias','decisoes','commits'].forEach(k => { if (!D[k]) D[k] = []; });
+
+/* ---------- dados ---------- */
+{ const carregar0 = API.carregar, coment0 = API.addComentario;
+  API.carregar = async function(){
+    await carregar0.call(API);
+    if (DEMO){ ['dependencias','decisoes','commits'].forEach(k => { if (!D[k]) D[k] = []; }); CUSTOS = DEMO.custos || []; LINKS = DEMO.links || []; return; }
+    const [dp, dc, cm] = (await Promise.all([sb.from('dependencias').select('*'), sb.from('decisoes').select('*').order('data', {ascending:false}).order('id', {ascending:false}).limit(400), sb.from('commits').select('*').order('data', {ascending:false}).limit(600)])).map(ok);
+    D.dependencias = dp || []; D.decisoes = dc || []; D.commits = cm || [];
+    if (ME.papel === 'admin'){ const [c, l] = (await Promise.all([sb.from('custos_pessoa').select('*'), sb.from('links_publicos').select('*').order('criado_em', {ascending:false})])).map(ok); CUSTOS = (c || []).map(k => ({...k, valor_hora:Number(k.valor_hora)})); LINKS = l || []; }
+    else { CUSTOS = []; LINKS = []; }
+  };
+  API.addComentario = async function(c){ await coment0.call(API, c); if (DEMO) analisarLocal(c); };
+}
+const RX_DESBLOQ = /(desbloque|destrav|liberad[oa]|resolvid[oa]|j[aá] tenho acesso)/, RX_BLOQ = /(travad[oa]|bloquead[oa]|impedid[oa]|aguardando|esperando|sem acesso|parad[oa] por|depende d[oae])/, RX_DECIS = /(decidimos|decidid[oa]|ficou definid[oa]|ficou acertad[oa]|vamos seguir com|fica combinad[oa]|aprovad[oa] pel[oa])/;
+function analisarLocal(c){ /* a mesma regra do gatilho do banco, para a demonstração */
+  const t = (c.texto || '').toLowerCase(), x = D.tarefas.find(k => k.id === c.tarefa_id); if (!x) return;
+  if (RX_DESBLOQ.test(t)) Object.assign(x, {bloqueio:null, bloqueado_por:null, bloqueado_em:null});
+  else if (RX_BLOQ.test(t)) Object.assign(x, {bloqueio:c.texto.slice(0, 200), bloqueado_por:USER.email, bloqueado_em:new Date().toISOString()});
+  if (RX_DECIS.test(t)) D.decisoes.unshift({id:Date.now(), projeto_id:x.projeto_id, tarefa_id:x.id, texto:c.texto, origem:'comentario', autor:USER.email, autor_id:USER.id, data:hoje(), criado_em:new Date().toISOString()});
+}
+Object.assign(API, {
+  async setDeps(tid, novas){ const atuais = D.dependencias.filter(d => d.tarefa_id === tid).map(d => d.depende_de), add = novas.filter(k => !atuais.includes(k)), del = atuais.filter(k => !novas.includes(k));
+    if (DEMO){ D.dependencias = D.dependencias.filter(d => !(d.tarefa_id === tid && del.includes(d.depende_de))).concat(add.map(k => ({tarefa_id:tid, depende_de:k}))); return; }
+    if (add.length) ok(await sb.from('dependencias').insert(add.map(k => ({tarefa_id:tid, depende_de:k}))));
+    if (del.length) ok(await sb.from('dependencias').delete().eq('tarefa_id', tid).in('depende_de', del)); },
+  async bloquear(tid, texto){ const p = texto ? {bloqueio:texto.slice(0, 200), bloqueado_por:USER.email, bloqueado_em:new Date().toISOString()} : {bloqueio:null, bloqueado_por:null, bloqueado_em:null}; return API.setTarefa(tid, p); },
+  async addDecisoes(xs){ if (DEMO){ xs.forEach((x, i) => D.decisoes.unshift({...x, id:Date.now() + i, autor:USER.email, autor_id:USER.id, data:x.data || hoje(), criado_em:new Date().toISOString()})); return; } ok(await sb.from('decisoes').insert(xs)); },
+  async delDecisao(id){ if (DEMO){ D.decisoes = D.decisoes.filter(k => k.id != id); return; } ok(await sb.from('decisoes').delete().eq('id', id)); },
+  async setCustos(xs){ if (DEMO){ xs.forEach(x => { const c = CUSTOS.find(k => k.nome === x.nome); if (c) c.valor_hora = x.valor_hora; else CUSTOS.push(x); }); DEMO.custos = CUSTOS; return; } ok(await sb.from('custos_pessoa').upsert(xs.map(x => ({...x, atualizado_em:new Date().toISOString()})))); },
+  async delCusto(nome){ if (DEMO){ CUSTOS = CUSTOS.filter(k => k.nome !== nome); DEMO.custos = CUSTOS; return; } ok(await sb.from('custos_pessoa').delete().eq('nome', nome)); },
+  async criarLink(pid){ if (DEMO){ const l = {token:crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), projeto_id:pid, ativo:true, criado_por:USER.email, criado_em:new Date().toISOString()}; LINKS.unshift(l); DEMO.links = LINKS; return l; } return ok(await sb.from('links_publicos').insert({projeto_id:pid}).select().single()); },
+  async revogarLink(token){ if (DEMO){ LINKS.forEach(l => { if (l.token === token) l.ativo = false; }); return; } ok(await sb.from('links_publicos').update({ativo:false}).eq('token', token)); },
+  async criarSprint(x){ if (DEMO){ const s = {...x, id:Date.now()}; D.sprints.push(s); return s; } return ok(await sb.from('sprints').insert(x).select().single()); },
+});
+
+/* ---------- cálculos ---------- */
+const durPlan = x => Math.max(1, diasEntre(x.inicio_previsto, x.fim_previsto) + 1);
+function fimReal(id){ let f = null; for (const v of D.avancos) if (v.tarefa_id === id && v.percentual >= 100 && (!f || v.data < f)) f = v.data; return f; }
+const mediana = a => { if (!a.length) return NaN; const s = a.slice().sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+const nomeCurto = s => String(s || '').split(' (')[0].trim();
+let _CAL = null, _CALK = '';
+function calibracao(){
+  const k = D.tarefas.length + ':' + D.avancos.length; if (_CAL && _CALK === k) return _CAL;
+  const am = []; for (const x of D.tarefas){ const f = fimReal(x.id); if (!f) continue; const real = Math.max(1, diasEntre(x.inicio_previsto, f) + 1); am.push({x, fator:clamp(real / durPlan(x), .3, 4), atraso:diasEntre(x.fim_previsto, f)}); }
+  const grupo = chave => { const g = {}; am.forEach(a => { const c = chave(a.x); (g[c] = g[c] || []).push(a); }); const o = {}; for (const [c, xs] of Object.entries(g)) o[c] = {f:mediana(xs.map(a => a.fator)), n:xs.length, noPrazo:xs.filter(a => a.atraso <= 0).length / xs.length}; return o; };
+  _CAL = {n:am.length, global:am.length >= 3 ? mediana(am.map(a => a.fator)) : 1, resp:grupo(x => nomeCurto(x.responsavel)), mod:grupo(x => x.modulo), am}; _CALK = k; return _CAL;
+}
+function fatorPara(resp, mod){ const C = calibracao(), r = C.resp[nomeCurto(resp)], m = C.mod[mod];
+  if (r && r.n >= 2) return {f:r.f, base:'resp', n:r.n}; if (m && m.n >= 2) return {f:m.f, base:'mod', n:m.n}; return {f:C.global, base:'global', n:C.n}; }
+function prazoRealista(inicio, fim, resp, mod){ const k = fatorPara(resp, mod), plan = Math.max(1, diasEntre(inicio, fim) + 1); return {...k, data:iso(T(inicio) + (Math.ceil(plan * k.f) - 1) * DIA)}; }
+const fatorTxt = f => f >= 1.05 ? `${Math.round((f - 1) * 100)}% mais tempo que o planejado` : f <= .95 ? `${Math.round((1 - f) * 100)}% menos tempo que o planejado` : 'no tempo planejado';
+
+/* Monte Carlo: sorteia semanas reais do passado até completar o que falta */
+const _MC = {};
+function monteCarlo(ts, chave){
+  const A = analise(ts); if (!A) return null;
+  const ck = chave + ':' + D.avancos.length + ':' + ts.length + ':' + A.h; if (_MC[ck]) return _MC[ck];
+  const out = {A, plano:A.fim};
+  if (A.R >= 99.95){ out.feito = true; return _MC[ck] = out; }
+  const ds = []; for (let k = 0; k < 12; k++){ const b = iso(T(A.h) - k * 7 * DIA), a = iso(T(A.h) - (k + 1) * 7 * DIA); if (b <= A.ini) break; ds.push(Math.max(0, A.ev(b) - A.ev(a))); }
+  if (ds.filter(d => d > 0).length < 2){ out.semDados = true; return _MC[ck] = out; }
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const N = 2000, sem = [];
+  for (let i = 0; i < N; i++){ let r = 100 - A.R, w = 0; while (r > 0 && w < 156){ r -= ds[Math.floor(rnd() * ds.length)]; w++; } sem.push(r > 0 ? Infinity : w); }
+  sem.sort((a, b) => a - b);
+  const dt = w => isFinite(w) ? iso(T(A.h) + w * 7 * DIA) : null, q = p => sem[Math.min(N - 1, Math.floor(N * p))];
+  const limite = Math.max(0, Math.ceil(diasEntre(A.h, A.fim) / 7));
+  Object.assign(out, {p50:dt(q(.5)), p85:dt(q(.85)), chance:A.fim < A.h ? 0 : sem.filter(w => w <= limite).length / N * 100, semanas:ds.length, ritmo:ds.reduce((s, v) => s + v, 0) / ds.length});
+  return _MC[ck] = out;
+}
+
+/* dependências: previsão de cada tarefa considerando as anteriores */
+const idDe = v => typeof v === 'object' ? v.id : v;
+const depsDe = v => { const id = idDe(v); return D.dependencias.filter(d => d.tarefa_id === id).map(d => D.tarefas.find(k => k.id === d.depende_de)).filter(Boolean); };
+const dependentesDe = v => { const id = idDe(v); return D.dependencias.filter(d => d.depende_de === id).map(d => D.tarefas.find(k => k.id === d.tarefa_id)).filter(Boolean); };
+const feita = x => x.estado === 'concluida' || atual(x.id) >= 100;
+function previsoes(){
+  const h = hoje(), memo = {}, vis = {};
+  const prev = x => {
+    if (memo[x.id]) return memo[x.id];
+    if (vis[x.id]) return {data:x.fim_previsto, causa:null}; vis[x.id] = 1;
+    let r;
+    if (feita(x)) r = {data:fimReal(x.id) || x.fim_previsto, causa:null};
+    else {
+      const f = fatorPara(x.responsavel, x.modulo).f, p = atual(x.id) / 100, dur = durPlan(x);
+      let ini = x.inicio_previsto, causa = null;
+      for (const d of depsDe(x)){ const pd = prev(d); if (!feita(d) && iso(T(pd.data) + DIA) > ini){ ini = iso(T(pd.data) + DIA); causa = pd.causa || d; } }
+      let fim;
+      if (ini > h && p === 0) fim = iso(T(ini) + (Math.ceil(dur * f) - 1) * DIA);
+      else { const base = ini > h ? ini : h; fim = iso(T(base) + Math.max(0, Math.ceil(dur * f * (1 - p)) - 1) * DIA); }
+      if (fim < x.fim_previsto && !causa && p < 1) fim = x.fim_previsto > h ? x.fim_previsto : fim;
+      r = {data:fim, causa};
+    }
+    r.atraso = diasEntre(x.fim_previsto, r.data); memo[x.id] = r; return r;
+  };
+  D.tarefas.forEach(prev); return memo;
+}
+function cadeias(ts){ /* tarefas abertas empurradas por uma anterior */
+  const P = previsoes(), out = [];
+  for (const x of ts) if (!feita(x) && P[x.id].causa && P[x.id].atraso > 0) out.push({x, atraso:P[x.id].atraso, causa:P[x.id].causa, prev:P[x.id].data});
+  return out.sort((a, b) => b.atraso - a.atraso);
+}
+
+/* custo e valor agregado (R$) */
+const brl = v => isFinite(v) ? v.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0}) : '–';
+function valorHora(resp){ const c = CUSTOS.find(k => norm(k.nome) === norm(nomeCurto(resp))) || CUSTOS.find(k => norm(k.nome).split(' ')[0] === norm(nomeCurto(resp)).split(' ')[0]); return c ? c.valor_hora : null; }
+function custoProjeto(ts){
+  if (!CUSTOS.length || !ts.length) return null;
+  const h = hoje(); let BAC = 0, PV = 0, EV = 0, AC = 0, horas = 0; const sem = new Set();
+  for (const x of ts){ const vh = valorHora(x.responsavel); if (vh === null){ sem.add(nomeCurto(x.responsavel)); continue; }
+    const v = x.peso * 8 * vh, a = T(x.inicio_previsto), b = T(x.fim_previsto) + DIA; BAC += v; PV += v * clamp((T(h) + DIA - a) / (b - a), 0, 1); EV += v * atual(x.id) / 100;
+    for (const av of D.avancos) if (av.tarefa_id === x.id && av.horas){ AC += av.horas * vh; horas += +av.horas; } }
+  const CPI = AC > 0 ? EV / AC : NaN;
+  return {BAC, PV, EV, AC, horas, CPI, EAC:isFinite(CPI) && CPI > 0 ? BAC / CPI : NaN, sem:[...sem]};
+}
+
+/* sprint automática pela capacidade */
+const uteis = (a, b) => { let n = 0; for (let d = T(a); d <= T(b); d += DIA){ const w = new Date(d).getUTCDay(); if (w && w !== 6) n++; } return n; };
+const RANK = {urgente:0, alta:1, media:2, baixa:3};
+function propostaSprint(alvo){
+  const dias = uteis(alvo.inicio, alvo.fim), ja = alvo.id ? D.tarefas.filter(x => x.sprint_id == alvo.id && !feita(x)) : [];
+  const conc = new Set(D.sprints.filter(s => s.status === 'concluida').map(s => s.id));
+  const cand = D.tarefas.filter(x => noFiltro(x) && !feita(x) && (!x.sprint_id || conc.has(x.sprint_id)) && !ja.includes(x)).sort((a, b) => (RANK[a.prioridade] ?? 2) - (RANK[b.prioridade] ?? 2) || a.fim_previsto.localeCompare(b.fim_previsto));
+  const cap = {}, carga = {}, esf = x => x.peso * (1 - atual(x.id) / 100) * fatorPara(x.responsavel, x.modulo).f;
+  const capDe = r => cap[r] ??= dias * .8 / Math.max(.5, fatorPara(r, '').f);
+  ja.forEach(x => { const r = nomeCurto(x.responsavel); capDe(r); carga[r] = (carga[r] || 0) + esf(x); });
+  const dentro = new Set(ja.map(x => x.id)), escolhidas = [], fora = [];
+  const ativa = sprintAtiva();
+  for (const x of cand){ const r = nomeCurto(x.responsavel); capDe(r);
+    const pend = depsDe(x).filter(d => !feita(d) && !dentro.has(d.id) && !(ativa && d.sprint_id == ativa.id && ativa.id != alvo.id));
+    if (pend.length){ fora.push({x, motivo:`espera "${pend[0].entrega}"`}); continue; }
+    if (x.bloqueio){ fora.push({x, motivo:'está bloqueada'}); continue; }
+    const e = esf(x);
+    if ((carga[r] || 0) + e > cap[r] + .01){ fora.push({x, motivo:`${r} sem capacidade`}); continue; }
+    carga[r] = (carga[r] || 0) + e; dentro.add(x.id); escolhidas.push({x, e}); }
+  return {dias, cap, carga, ja, escolhidas, fora};
+}
+function proximaSprintAlvo(){
+  const pl = D.sprints.filter(s => s.status === 'planejada').sort((a, b) => a.inicio.localeCompare(b.inicio))[0]; if (pl) return pl;
+  const at = sprintAtiva(), h = hoje(), ult = D.sprints.slice().sort((a, b) => b.fim.localeCompare(a.fim))[0], ini = at ? proxDiaUtil(at.fim, 1) : (ult && ult.fim >= h ? proxDiaUtil(ult.fim, 1) : h);
+  const nums = D.sprints.map(s => +((s.nome.match(/\d+/) || [0])[0])); return {nome:'Sprint ' + ((Math.max(0, ...nums) || D.sprints.length) + 1), inicio:ini, fim:iso(T(ini) + 11 * DIA), status:at ? 'planejada' : 'ativa', nova:true};
+}
+
+/* novos alertas */
+{ const ins0 = insights;
+  insights = function(){
+    const out = ins0(), h = hoje(), ts = D.tarefas.filter(noFiltro);
+    const bl = ts.filter(x => x.bloqueio && !feita(x));
+    if (bl.length) out.splice(out[0] && out[0].ico === 'at' ? 1 : 0, 0, {nivel:'crit', ico:'block', titulo:`${bl.length} tarefa${bl.length > 1 ? 's' : ''} bloqueada${bl.length > 1 ? 's' : ''}`, texto:`"${bl[0].entrega}": ${bl[0].bloqueio}`, acoes:[['Abrir', 'ver', bl[0].id]]});
+    const ch = cadeias(ts);
+    if (ch.length){ const c = ch[0]; out.push({nivel:'warn', ico:'chain', titulo:`Atraso em cadeia: ${ch.length} tarefa${ch.length > 1 ? 's' : ''} empurrada${ch.length > 1 ? 's' : ''}`, texto:`"${c.causa.entrega}" atrasa "${c.x.entrega}" em ${c.atraso} dia(s).`, acoes:[['Ver previsões', 'go', 'previsoes']]}); }
+    for (const p of D.projetos.filter(p => p.status === 'ativo' && noFiltro({projeto_id:p.id}))){ const m = monteCarlo(D.tarefas.filter(x => x.projeto_id === p.id), p.id);
+      if (m && !m.feito && !m.semDados && m.chance < 50) out.push({nivel:'warn', ico:'dice', titulo:`${p.nome}: ${Math.round(m.chance)}% de chance de cumprir o prazo`, texto:`Pelo ritmo real das últimas ${m.semanas} semanas, o mais provável é terminar em ${brc(m.p50)} (plano: ${brc(m.plano)}).`, acoes:[['Ver previsões', 'go', 'previsoes']]}); }
+    return out;
+  };
+}
+
+/* ---------- telas ---------- */
+const barra = (v, cls = '') => `<div class="bar" style="flex:1"><i class="${cls}" style="width:${clamp(v, 0, 100)}%"></i></div>`;
+const corChance = c => c >= 70 ? 'var(--ok)' : c >= 40 ? 'var(--warn)' : 'var(--crit)';
+function cardPrevisao(p, ts, compacto){
+  const m = monteCarlo(ts, p.id + (compacto ? '' : '')); if (!m) return '';
+  let corpo;
+  if (m.feito) corpo = `<p><b style="color:var(--ok)">Projeto entregue.</b></p>`;
+  else if (m.semDados) corpo = `<p class="sub">Ainda não há semanas suficientes com avanço lançado para simular. A previsão aparece depois de 2 semanas com avanço.</p>`;
+  else corpo = `<div class="pv"><div class="pv-ch" style="--c:${corChance(m.chance)};--p:${Math.round(m.chance)}"><b class="tn">${Math.round(m.chance)}%</b><span>chance de terminar até ${brc(m.plano)}</span></div>
+    <div class="pv-d"><div><span>Mais provável (P50)</span><b class="tn">${m.p50 ? brc(m.p50) : 'sem previsão'}</b></div><div><span>Com folga (P85)</span><b class="tn">${m.p85 ? brc(m.p85) : 'sem previsão'}</b></div><div><span>Plano</span><b class="tn">${brc(m.plano)}</b></div></div></div>
+    <p class="sub" style="margin-top:10px">Simulação de 2.000 cenários usando o avanço real de cada uma das últimas ${m.semanas} semanas (média ${pct(m.ritmo, 1)} por semana). Prometa ao cliente a data P85.</p>`;
+  return `<section class="card"><div class="card-h"><span class="hic">${isvg('dice')}</span><h2>${compacto ? 'Previsão de término' : esc(p.nome)}</h2><span class="sp"></span>${compacto ? '<a class="sub" href="#/previsoes">Detalhes</a>' : `<button class="btn btn-sm btn-g" data-a="pj-abrir" data-id="${esc(p.id)}">Abrir projeto</button>`}</div><div class="card-b">${corpo}</div></section>`;
+}
+function telaPrevisoes(){
+  const ps = D.projetos.filter(p => p.status !== 'concluido' && noFiltro({projeto_id:p.id})), C = calibracao(), ts = D.tarefas.filter(noFiltro), ch = cadeias(ts), P = previsoes();
+  const fimProj = p => { const xs = D.tarefas.filter(x => x.projeto_id === p.id); if (!xs.length) return null; const plano = xs.reduce((m, x) => x.fim_previsto > m ? x.fim_previsto : m, '0000'), prev = xs.reduce((m, x) => P[x.id].data > m ? P[x.id].data : m, '0000'); return {plano, prev, d:diasEntre(plano, prev)}; };
+  const lin = (k, v) => `<tr><td><b>${esc(k)}</b></td><td class="tn">${v.n}</td><td class="tn">${v.f.toLocaleString('pt-BR', {maximumFractionDigits:2, minimumFractionDigits:2})}×</td><td class="hide-m">${barra(v.noPrazo * 100, v.noPrazo >= .7 ? 'ok' : '')}</td><td class="sub">${fatorTxt(v.f)}</td></tr>`;
+  const tab = (o, tit) => { const xs = Object.entries(o).filter(([, v]) => v.n >= 2).sort((a, b) => b[1].f - a[1].f); return `<section class="card"><div class="card-h"><h2>${tit}</h2><span class="sp"></span><span class="sub">${xs.length}</span></div><div class="tbl-w"><table><thead><tr><th>${tit.includes('pessoa') ? 'Pessoa' : 'Módulo'}</th><th>Tarefas</th><th>Fator</th><th class="hide-m" style="min-width:110px">No prazo</th><th>Na prática</th></tr></thead><tbody>${xs.map(([k, v]) => lin(k, v)).join('') || '<tr><td colspan="5" class="empty">Ainda poucas tarefas concluídas para calibrar (mínimo 2 por grupo).</td></tr>'}</tbody></table></div></section>`; };
+  return casca(`${cabeca('Previsões', 'Quando cada projeto termina de verdade, com base no histórico da equipe · ' + escopo())}
+    <div class="g2">${ps.map(p => cardPrevisao(p, D.tarefas.filter(x => x.projeto_id === p.id))).join('') || '<div class="card card-b empty">Nenhum projeto ativo.</div>'}</div>
+    <section class="card"><div class="card-h"><span class="hic">${isvg('chain')}</span><h2>Atrasos em cadeia</h2><span class="sp"></span><span class="sub">${ch.length}</span></div><div class="card-b list" style="padding-top:2px;padding-bottom:2px">
+      ${ch.map(c => `<div class="li"><div class="bx" data-a="ver" data-id="${esc(c.x.id)}"><b>${esc(c.x.entrega)}</b><span class="sub">espera <b>${esc(c.causa.entrega)}</b> (${esc(c.causa.responsavel)}) · previsão ${brc(c.prev)} no lugar de ${brc(c.x.fim_previsto)}</span></div><span class="pill p-crit">+${c.atraso} dia${c.atraso > 1 ? 's' : ''}</span></div>`).join('') || `<p class="empty">Nenhuma tarefa sendo empurrada por outra. Ligue tarefas em "Depende de" no cadastro para o TRIPRO calcular o efeito dominó.</p>`}
+      ${ps.map(p => { const f = fimProj(p); return f && f.d > 0 ? `<div class="note" style="margin:10px 0">${isvg('alert')}<span><b>${esc(p.nome)}</b>: somando calibração e dependências, o término vai de ${brc(f.plano)} para <b>${brc(f.prev)}</b> (+${f.d} dias).</span></div>` : ''; }).join('')}
+    </div></section>
+    <div class="g2">${tab(C.resp, 'Calibração por pessoa')}${tab(C.mod, 'Calibração por módulo')}</div>
+    <p class="sub">Fator = dias que a tarefa levou de verdade ÷ dias planejados (mediana de ${C.n} tarefas concluídas). 1,30× quer dizer que costuma levar 30% a mais. O cadastro de tarefa usa esse fator para sugerir um prazo realista, e a sprint automática para calcular a capacidade.</p>`);
+}
+function telaDecisoes(){
+  const xs = D.decisoes.filter(d => UI.pj === 'all' || d.projeto_id === UI.pj).filter(d => !UI.dq || norm(d.texto).includes(norm(UI.dq))), OR = {manual:'Manual', comentario:'Comentário', ata:'Ata'};
+  const porMes = {}; xs.forEach(d => { const k = d.data.slice(0, 7); (porMes[k] = porMes[k] || []).push(d); });
+  return casca(`${cabeca('Decisões', 'O que foi decidido, quando e por quem · ' + escopo(), `<button class="btn" data-a="ata">${isvg('file')}Colar ata</button><button class="btn btn-p" data-a="decisao-nova">${ICO.plus}Registrar decisão</button>`)}
+    <div class="filters"><label class="search">${ICO.search}<input class="sel" data-f="dq" placeholder="Buscar decisão" value="${esc(UI.dq || '')}" aria-label="Buscar decisão"></label></div>
+    ${Object.entries(porMes).map(([m, ds]) => `<section class="card"><div class="card-h"><h2>${MES[+m.slice(5) - 1].replace(/^./, c => c.toUpperCase())} de ${m.slice(0, 4)}</h2><span class="sp"></span><span class="sub">${ds.length}</span></div><div class="card-b list" style="padding-top:2px;padding-bottom:2px">
+      ${ds.map(d => { const t = D.tarefas.find(k => k.id === d.tarefa_id), p = projeto(d.projeto_id); return `<div class="li dec"><span class="dic">${isvg('flag')}</span><div class="bx"${t ? ` data-a="ver" data-id="${esc(t.id)}"` : ''}><b style="white-space:normal">${esc(d.texto)}</b><span class="sub">${brc(d.data)} · ${esc((d.autor || '').split('@')[0])}${p && UI.pj === 'all' ? ' · ' + esc(p.nome) : ''}${t ? ' · ' + esc(t.entrega) : ''}</span></div><span class="pill p-neu">${OR[d.origem] || d.origem}</span>${d.autor_id === USER.id || admin() ? `<button class="btn btn-sm btn-g btn-i" data-a="decisao-del" data-id="${d.id}" aria-label="Excluir decisão">${ICO.x}</button>` : ''}</div>`; }).join('')}</div></section>`).join('') || `<section class="card card-b"><p class="empty">Nenhuma decisão registrada${UI.dq ? ' com essa busca' : ''}.</p><div class="how"><div><i>1</i><span><b>Pelos comentários</b>Escreva "decidimos…", "ficou definido…" ou "aprovado pelo cliente…" e a decisão entra aqui sozinha.</span></div><div><i>2</i><span><b>Pela ata</b>Cole o texto da reunião e escolha o que foi decidido.</span></div><div><i>3</i><span><b>À mão</b>Botão Registrar decisão.</span></div></div></section>`}`);
+}
+function cardCusto(ts){
+  if (!admin()) return '';
+  const c = custoProjeto(ts);
+  if (!c) return `<section class="card"><div class="card-h"><span class="hic">${isvg('money')}</span><h2>Custo</h2><span class="pill p-neu">só administradores</span></div><div class="card-b"><p class="sub" style="margin-bottom:10px">Cadastre o valor da hora de cada pessoa para ver quanto o projeto custa e quanto vale o que já foi entregue.</p><a class="btn btn-sm" href="#/conta">Cadastrar valores</a></div></section>`;
+  const k = (l, v, s = '') => `<div><span>${l}</span><b class="tn">${v}</b>${s ? `<small>${s}</small>` : ''}</div>`;
+  return `<section class="card"><div class="card-h"><span class="hic">${isvg('money')}</span><h2>Custo e valor entregue</h2><span class="pill p-neu">só administradores</span></div><div class="card-b"><div class="pv-d c4">
+    ${k('Orçamento (esforço × hora)', brl(c.BAC))}${k('Planejado até hoje', brl(c.PV))}${k('Valor entregue', brl(c.EV), c.BAC ? pct(c.EV / c.BAC * 100, 0) + ' do total' : '')}${k('Custo real', c.AC ? brl(c.AC) : '–', c.horas ? c.horas.toLocaleString('pt-BR') + ' h lançadas' : 'lance horas no avanço')}</div>
+    ${isFinite(c.CPI) ? `<div class="note" style="margin-top:12px">${isvg(c.CPI >= 1 ? 'check' : 'alert')}<span>Cada R$ 1,00 gasto entregou <b>${c.CPI.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</b> de valor. No ritmo atual o projeto custa <b>${brl(c.EAC)}</b> no total.</span></div>` : ''}
+    ${c.sem.length ? `<p class="sub" style="margin-top:10px">Sem valor da hora: ${esc(c.sem.join(', '))}. <a href="#/conta">Cadastrar</a></p>` : ''}</div></section>`;
+}
+
+/* ---------- integra nas telas existentes ---------- */
+ROTAS.push('previsoes', 'decisoes');
+{ const casca0 = casca;
+  casca = function(corpo){ let h = casca0(corpo); const R = rota(), on = r => R.r === r ? ' on' : '';
+    h = h.replace(/(<a class="nl[^"]*" href="#\/entregas")/, `<a class="nl${on('previsoes')}" href="#/previsoes" title="Previsões">${ICO.dice}<span class="lbl">Previsões</span></a><a class="nl${on('decisoes')}" href="#/decisoes" title="Decisões">${ICO.flag}<span class="lbl">Decisões</span></a>$1`);
+    if (['previsoes','decisoes'].includes(R.r)) h = h.replace(/<div class="ng( ab)?"><button class="nl nh" data-a="grp" data-id="acomp"/, '<div class="ng ab tem"><button class="nl nh" data-a="grp" data-id="acomp"');
+    return h; };
+}
+{ const tp = telaProjeto;
+  telaProjeto = function(pid){ let h = tp(pid); const P = projeto(pid); if (!P) return h; const ts = D.tarefas.filter(x => x.projeto_id === pid);
+    if (admin()) h = h.replace('<button class="btn" data-a="projeto-editar"', `<button class="btn" data-a="link-cliente" data-id="${esc(pid)}">${isvg('share')}Compartilhar com cliente</button><button class="btn" data-a="projeto-editar"`);
+    return h.replace('<div class="col">' + cardResumo(), '<div class="col">' + cardPrevisao(P, ts, true) + cardCusto(ts) + cardResumo()); };
+}
+{ const tq = telaQuadro;
+  telaQuadro = function(){ let h = tq(); const nc = {}; D.commits.forEach(c => nc[c.tarefa_id] = (nc[c.tarefa_id] || 0) + 1);
+    return h.replace(/<article class="kc" draggable="true" data-a="ver" data-id="([^"]+)"><div class="kc-t">/g, (m, id) => { const x = D.tarefas.find(k => k.id === id.replace(/&amp;/g, '&')); if (!x) return m; const nd = depsDe(x).filter(d => !feita(d)).length;
+      return m.replace('class="kc"', `class="kc${x.bloqueio && !feita(x) ? ' blq' : ''}"`) + (x.bloqueio && !feita(x) ? `<span class="pill p-crit">${isvg('block', 12)}Bloqueada</span>` : '') + (nd ? `<span class="pill p-warn" title="Espera ${nd} tarefa(s)">${isvg('chain', 12)}${nd}</span>` : '') + (nc[x.id] ? `<span class="pill p-neu">${isvg('git', 12)}${nc[x.id]}</span>` : ''); }); };
+}
+{ const ts0 = telaSprints;
+  telaSprints = function(){ const alvo = proximaSprintAlvo();
+    return ts0().replace('<button class="btn btn-p" data-a="sprint-nova">', `<button class="btn" data-a="sprint-auto">${isvg('spark')}Montar ${esc(alvo.nome)} automaticamente</button><button class="btn btn-p" data-a="sprint-nova">`)
+      .replace('<h2>Sugestão</h2></div><div class="card-b">', `<h2>Sugestão</h2></div><div class="card-b"><div class="note" style="margin:0 0 12px">${isvg('spark')}<span>O TRIPRO monta a <b>${esc(alvo.nome)}</b> pela capacidade de cada pessoa, pelas prioridades e pelas dependências. <button class="btn btn-sm btn-p" data-a="sprint-auto" style="margin-left:6px">Montar agora</button></span></div>`); };
+}
+{ const tc = telaConta;
+  telaConta = function(){ let h = tc(); if (!admin()) return h;
+    const nomes = [...new Set(D.tarefas.map(x => nomeCurto(x.responsavel)).concat(CUSTOS.map(c => c.nome)))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    const url = CONFIG.SUPABASE_URL + '/functions/v1/github';
+    const extra = `<div class="g2" style="margin-top:var(--gap)"><section class="card" id="custos"><div class="card-h"><span class="hic">${isvg('money')}</span><h2>Valor da hora por pessoa</h2><span class="pill p-neu">só administradores</span></div><form id="fcu" class="card-b" style="display:flex;flex-direction:column;gap:8px">
+      ${nomes.map(n => `<div class="row" style="flex-wrap:nowrap"><span style="flex:1;min-width:0;font-weight:600;color:var(--ink)">${esc(n)}</span><span class="sub">R$</span><input class="inp" type="number" min="0" step="0.01" data-cu="${esc(n)}" value="${(CUSTOS.find(c => c.nome === n) || {}).valor_hora ?? ''}" placeholder="por hora" style="width:120px"></div>`).join('') || '<p class="empty">Nenhum responsável nas tarefas ainda.</p>'}
+      <div class="row"><span class="sub" style="flex:1">Usado só no card de custo dos projetos. Ninguém além dos administradores vê.</span><button class="btn btn-p btn-sm">Salvar valores</button></div></form></section>
+      <section class="card"><div class="card-h"><span class="hic">${isvg('git')}</span><h2>Ligar ao GitHub</h2></div><div class="card-b"><p class="sub" style="margin-bottom:10px">Commits e pull requests que citam o código da tarefa (ex.: <code>#A04</code>) aparecem nela e movem o quadro: citou, vai para Fazendo; "fecha #A04" ou PR aceito, vai para Em revisão.</p>
+        <div class="how" style="grid-template-columns:1fr"><div><i>1</i><span><b>No Supabase</b>Edge Functions, Secrets: crie <code>GITHUB_WEBHOOK_SECRET</code> com uma senha que você inventar.</span></div><div><i>2</i><span><b>No GitHub</b>Repositório, Settings, Webhooks, Add webhook. Cole a URL abaixo, Content type <code>application/json</code>, a mesma senha em Secret, eventos Pushes e Pull requests.</span></div><div><i>3</i><span><b>No dia a dia</b>Escreva o código da tarefa na mensagem do commit.</span></div></div>
+        <div class="addl" style="margin-top:12px"><input class="inp" id="gh-url" readonly value="${esc(url)}"><button class="btn" data-a="copiar-campo" data-id="gh-url">${isvg('copy')}Copiar</button></div></div></section></div>`;
+    return h.replace(/<\/main><\/div><\/div>$/, extra + '</main></div></div>'); };
+}
+{ const r0 = render;
+  render = function(){ const R = rota(); if (USER && ME && ME.status === 'aprovado' && !LG.recup && (R.r === 'previsoes' || R.r === 'decisoes')){ const sy = scrollY; $('#root').innerHTML = R.r === 'previsoes' ? telaPrevisoes() : telaDecisoes(); scrollTo(0, sy); return; }
+    r0(); if (R.r === 'conta' && $('#fcu')) $('#fcu').addEventListener('submit', async e => { e.preventDefault(); const xs = $$('[data-cu]').filter(i => i.value !== '').map(i => ({nome:i.dataset.cu, valor_hora:+i.value}));
+      try { await API.setCustos(xs); for (const i of $$('[data-cu]').filter(i => i.value === '' && CUSTOS.some(c => c.nome === i.dataset.cu))) await API.delCusto(i.dataset.cu); toast('Valores salvos.'); await recarregar(); } catch (err){ toast('Não foi possível salvar: ' + err.message, true); } }); };
+}
+
+/* gaveta da tarefa: bloqueio, dependências, código do GitHub, commits, decisões */
+{ const g0 = gavetaTarefa;
+  gavetaTarefa = function(id){ g0(id); const x = D.tarefas.find(k => k.id === id), db = $('#dlg .db'); if (!x || !db) return;
+    const P = previsoes()[id], dps = depsDe(x), dts = dependentesDe(x), cms = D.commits.filter(c => c.tarefa_id === id), decs = D.decisoes.filter(d => d.tarefa_id === id);
+    const blq = x.bloqueio && !feita(x) ? `<div class="blk">${isvg('block', 18)}<div><b>Bloqueada</b><p>${esc(x.bloqueio)}</p><span class="sub">${esc((x.bloqueado_por || '').split('@')[0])}${x.bloqueado_em ? ' · ' + quando(x.bloqueado_em) : ''}</span></div><button class="btn btn-sm" data-a="desbloquear" data-id="${esc(id)}">${isvg('unlock')}Desbloquear</button></div>` : '';
+    const prev = !feita(x) && P && P.atraso > 0 ? `<div class="note" style="margin:0">${isvg('clock')}<span>Previsão realista: <b>${brc(P.data)}</b> (${P.atraso} dia${P.atraso > 1 ? 's' : ''} após o prazo)${P.causa ? `, porque espera <b>${esc(P.causa.entrega)}</b>` : ', pelo histórico de ' + esc(nomeCurto(x.responsavel))}.</span></div>` : '';
+    const dep = `<div class="sec"><h4>${isvg('chain')}Dependências</h4>${dps.length ? `<div class="sub" style="margin-bottom:4px">Só começa depois de:</div>${dps.map(d => `<div class="dep" data-a="ver" data-id="${esc(d.id)}"><span class="pill ${feita(d) ? 'p-ok' : 'p-warn'}">${feita(d) ? 'Pronta' : 'Aberta'}</span><span>${esc(d.entrega)}</span></div>`).join('')}` : ''}${dts.length ? `<div class="sub" style="margin:8px 0 4px">Está segurando:</div>${dts.map(d => `<div class="dep" data-a="ver" data-id="${esc(d.id)}"><span class="pill p-neu">${esc(d.id)}</span><span>${esc(d.entrega)}</span></div>`).join('')}` : ''}${!dps.length && !dts.length ? '<p class="sub">Nenhuma. Defina em Editar, "Depende de".</p>' : ''}</div>`;
+    const ult = cms[0], git = `<div class="sec"><h4>${isvg('git')}Código <span class="sub">${ult ? 'último commit ' + quando(ult.data) : ''}</span></h4><div class="row"><code class="cod">#${esc(id)}</code><button class="btn btn-sm btn-g" data-a="copiar-txt" data-id="#${esc(id)}">${isvg('copy')}Copiar código</button><span class="sub">cite no commit para ligar</span></div>${cms.slice(0, 6).map(c => `<a class="cmt" href="${esc(c.url || '#')}" target="_blank" rel="noopener"><span class="pill p-neu">${c.tipo === 'pr' ? 'PR' : esc((c.sha || '').slice(0, 7))}</span><span>${esc((c.mensagem || '').split('\n')[0])}</span><span class="sub">${esc(c.autor || '')} · ${quando(c.data)}</span></a>`).join('')}</div>`;
+    const dec = `<div class="sec"><h4>${isvg('flag')}Decisões <span class="sub">${decs.length || ''}</span></h4>${decs.map(d => `<div class="sub" style="margin-bottom:6px"><b style="color:var(--ink)">${esc(d.texto)}</b><br>${brc(d.data)} · ${esc((d.autor || '').split('@')[0])}</div>`).join('')}<div class="row"><button class="btn btn-sm" data-a="decisao-nova" data-id="${esc(id)}">${ICO.plus}Registrar decisão</button>${!x.bloqueio && !feita(x) ? `<button class="btn btn-sm btn-g" data-a="bloquear" data-id="${esc(id)}">${isvg('block')}Sinalizar bloqueio</button>` : ''}</div></div>`;
+    const sec1 = db.querySelector('.kv'); if (sec1) sec1.insertAdjacentHTML('afterend', dep + git);
+    const bar = db.querySelector('.bar'); if (bar) bar.closest('.row').insertAdjacentHTML('afterend', blq + prev);
+    const hist = [...db.querySelectorAll('.sec')].pop(); if (hist) hist.insertAdjacentHTML('beforebegin', dec);
+  };
+}
+
+/* cadastro de tarefa: dependências e prazo realista */
+{ const m0 = modalTarefa;
+  modalTarefa = function(id, preset = {}){ m0(id, preset); if (!$('#ft')) return;
+    TM.deps = id ? D.dependencias.filter(d => d.tarefa_id === id).map(d => d.depende_de) : [];
+    $('#t-f').closest('.f2').insertAdjacentHTML('afterend', `<div id="t-cal"></div><div class="f"><label for="t-dp">Depende de <span class="sub">(opcional)</span></label><div class="chips" id="t-dps"></div><select class="inp" id="t-dp"></select></div>`);
+    const opts = () => { const pj = $('#t-pj').value, xs = D.tarefas.filter(k => k.projeto_id === pj && k.id !== id && !TM.deps.includes(k.id)).sort((a, b) => a.fim_previsto.localeCompare(b.fim_previsto));
+      $('#t-dp').innerHTML = `<option value="">Adicionar tarefa anterior…</option>` + xs.map(k => `<option value="${esc(k.id)}">${esc(k.id)} · ${esc(k.entrega)}${feita(k) ? ' (pronta)' : ''}</option>`).join('');
+      $('#t-dps').innerHTML = TM.deps.map(d => { const k = D.tarefas.find(t => t.id === d); return `<span class="chip">${esc(k ? k.entrega : d)}<button type="button" data-a="t-dep-tira" data-id="${esc(d)}" aria-label="Remover">${isvg('x', 12)}</button></span>`; }).join(''); };
+    const cal = () => { const el = $('#t-cal'); if (!el) return; const ini = $('#t-i').value, fim = $('#t-f').value, r = $('#t-r').value; if (!ini || !fim || !r){ el.innerHTML = ''; return; }
+      const s = prazoRealista(ini, fim, r, $('#t-m').value); let txt = '';
+      const ld0 = TM.deps.map(d => D.tarefas.find(t => t.id === d)).filter(k => k && !feita(k)).map(k => previsoes()[k.id].data).sort().pop();
+      if (ld0 && ld0 >= ini) txt = `Uma tarefa anterior só termina em <b>${brc(ld0)}</b>. Comece depois disso.`;
+      else if (s.data > fim && s.n >= 2) txt = `Pelo histórico ${s.base === 'resp' ? 'de ' + esc(nomeCurto(r)) : s.base === 'mod' ? 'do módulo' : 'da equipe'} (${s.n} tarefas), costuma levar ${fatorTxt(s.f)}. Prazo realista: <b>${brc(s.data)}</b>. <button type="button" class="lnk" data-a="t-prazo" data-id="${s.data}">Usar</button>`;
+      el.innerHTML = txt ? `<div class="note" style="margin:0">${isvg('spark')}<span>${txt}</span></div>` : ''; };
+    TM.cal = cal; TM.opts = opts; opts(); cal();
+    ['#t-i', '#t-f', '#t-r', '#t-m'].forEach(s => $(s).addEventListener('change', cal));
+    $('#t-r').addEventListener('input', cal); $('#t-pj').addEventListener('change', () => { TM.deps = []; opts(); });
+    $('#t-dp').addEventListener('change', e => { if (e.target.value){ TM.deps.push(e.target.value); opts(); cal(); } });
+  };
+  const salvar0 = API.saveTarefa;
+  API.saveTarefa = async function(x, novo){ const deps = TM && TM.deps ? TM.deps.slice() : null; await salvar0.call(API, x, novo); if (deps) await API.setDeps(x.id, deps); };
+}
+
+/* avanço: horas gastas (opcional) */
+{ const a0 = modalAvanco;
+  modalAvanco = function(id){ a0(id); const f = $('#a-d'); if (!f) return;
+    f.closest('.f2').insertAdjacentHTML('beforeend', `<div class="f"><label for="a-h">Horas gastas <span class="sub">(opcional)</span></label><input class="inp" id="a-h" type="number" min="0" step="0.5" placeholder="Ex.: 6"></div>`); };
+  const add0 = API.addAvanco;
+  API.addAvanco = async function(v){ const hs = $('#a-h'); if (hs && hs.value !== '') v.horas = +hs.value; return add0.call(API, v); };
+}
+
+/* ---------- janelas ---------- */
+function modalDecisao(tid){
+  const t = tid ? D.tarefas.find(k => k.id === tid) : null, pid = t ? t.projeto_id : (UI.pj !== 'all' ? UI.pj : D.projetos[0] && D.projetos[0].id);
+  abrir(`${cab('Registrar decisão')}<form id="fd" style="display:contents"><div class="mb">
+    <div class="f"><label for="d-t">O que foi decidido</label><textarea class="inp" id="d-t" required maxlength="1000" placeholder="Ex.: O cliente aprovou o layout B da tela de propostas"></textarea></div>
+    <div class="f2"><div class="f"><label for="d-p">Projeto</label><select class="inp" id="d-p">${D.projetos.map(p => `<option value="${esc(p.id)}" ${p.id === pid ? 'selected' : ''}>${esc(p.nome)}</option>`).join('')}</select></div><div class="f"><label for="d-d">Data</label><input class="inp" id="d-d" type="date" value="${hoje()}" required></div></div>
+    ${t ? `<p class="sub">Ligada à tarefa <b>${esc(t.entrega)}</b>.</p>` : ''}</div>
+    <div class="mf"><span class="sp"></span><button type="button" class="btn" data-a="fechar">Cancelar</button><button class="btn btn-p">Registrar</button></div></form>`);
+  $('#fd').addEventListener('submit', async e => { e.preventDefault();
+    try { await API.addDecisoes([{projeto_id:$('#d-p').value, tarefa_id:tid || null, texto:$('#d-t').value.trim(), origem:'manual', data:$('#d-d').value}]); fechar(); toast('Decisão registrada.'); await recarregar(); if (tid) gavetaTarefa(tid); } catch (err){ toast('Não foi possível registrar: ' + err.message, true); } });
+}
+function extrairDecisoes(txt){
+  const ls = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean); let sec = false; const out = [];
+  for (const l of ls){ const n = norm(l);
+    if (/^#*\s*(decis|definic|acordos|deliberac)/.test(n) && l.length < 60){ sec = true; continue; }
+    if (/^#*\s*(pendenc|proximos passos|acoes|participantes|pauta|tarefas)/.test(n) && l.length < 60){ sec = false; continue; }
+    const limpo = l.replace(/^[-*•·\d.)\s]+/, '').trim(); if (limpo.length < 6) continue;
+    if (sec || RX_DECIS.test(n) || /\b(aprovad[oa]|definid[oa]|acordad[oa]|fica\b)/.test(n)) out.push(limpo); }
+  return [...new Set(out)];
+}
+function modalAta(){
+  const pid = UI.pj !== 'all' ? UI.pj : D.projetos[0] && D.projetos[0].id;
+  abrir(`${cab('Decisões a partir da ata')}<div class="mb">
+    <div class="f"><label for="at-t">Cole a ata ou as anotações da reunião</label><textarea class="inp" id="at-t" style="min-height:160px" placeholder="Ex.:&#10;Decisões:&#10;- Layout B aprovado pelo cliente&#10;- Vamos seguir com o PIX como pagamento"></textarea></div>
+    <div class="f2"><div class="f"><label for="at-p">Projeto</label><select class="inp" id="at-p">${D.projetos.map(p => `<option value="${esc(p.id)}" ${p.id === pid ? 'selected' : ''}>${esc(p.nome)}</option>`).join('')}</select></div><div class="f"><label for="at-d">Data da reunião</label><input class="inp" id="at-d" type="date" value="${hoje()}"></div></div>
+    <div id="at-r"></div></div>
+    <div class="mf"><span class="sp"></span><button type="button" class="btn" data-a="fechar">Cancelar</button><button class="btn btn-p" data-a="ata-salvar" id="at-ok" disabled>Registrar decisões</button></div>`, 'lg');
+  const pinta = () => { const xs = extrairDecisoes($('#at-t').value); $('#at-r').innerHTML = $('#at-t').value.trim() ? (xs.length ? `<div class="sub" style="margin-bottom:6px"><b style="color:var(--ink)">${xs.length} decisão(ões) encontrada(s).</b> Desmarque o que não for decisão.</div>${xs.map((d, i) => `<label class="ckl"><input type="checkbox" checked data-at="${i}"><span>${esc(d)}</span></label>`).join('')}` : '<p class="sub">Nenhuma decisão encontrada. Use um título "Decisões:" ou frases como "decidimos", "ficou definido", "aprovado pelo cliente".</p>') : ''; $('#at-ok').disabled = !xs.length; MODAL_ATA = xs; };
+  $('#at-t').addEventListener('input', pinta);
+}
+let MODAL_ATA = [];
+function modalBloqueio(tid){
+  abrir(`${cab('Sinalizar bloqueio')}<form id="fb" style="display:contents"><div class="mb"><div class="f"><label for="b-t">O que está travando?</label><input class="inp" id="b-t" required maxlength="200" placeholder="Ex.: aguardando acesso ao servidor do cliente"></div><p class="sub">A tarefa ganha a marca Bloqueada no quadro e aparece em Precisa de atenção. Dica: escrever "travado" ou "aguardando" num comentário faz isso sozinho, e "liberado" ou "resolvido" tira.</p></div>
+    <div class="mf"><span class="sp"></span><button type="button" class="btn" data-a="fechar">Cancelar</button><button class="btn btn-p">Sinalizar</button></div></form>`);
+  $('#fb').addEventListener('submit', async e => { e.preventDefault(); try { await API.bloquear(tid, $('#b-t').value.trim()); await recarregar(true); gavetaTarefa(tid); toast('Tarefa marcada como bloqueada.'); } catch (err){ toast(err.message, true); } });
+}
+let SA = null;
+function modalSprintAuto(){
+  const alvo = proximaSprintAlvo(), r = propostaSprint(alvo); SA = {alvo, r};
+  const pessoas = Object.keys(r.cap).sort();
+  abrir(`${cab('Montar ' + esc(alvo.nome) + ' automaticamente')}<div class="mb">
+    <p class="sub">${brc(alvo.inicio)} a ${brc(alvo.fim)} · ${r.dias} dias úteis${alvo.nova ? ' · a sprint será criada' : ''}. Capacidade = 80% dos dias úteis, ajustada pelo histórico de cada pessoa.</p>
+    <div class="cap">${pessoas.map(p => { const c = r.cap[p], l = r.carga[p] || 0; return `<div><b>${esc(p)}</b>${barra(l / c * 100, l > c ? 'crit' : l / c > .85 ? 'warn' : '')}<span class="sub tn">${l.toLocaleString('pt-BR', {maximumFractionDigits:1})} de ${c.toLocaleString('pt-BR', {maximumFractionDigits:1})} dias${l > c ? ' · <b style="color:var(--crit)">acima da capacidade com o que já está na sprint</b>' : ''}</span></div>`; }).join('') || '<p class="sub">Nenhuma tarefa candidata.</p>'}</div>
+    ${r.escolhidas.length ? `<h4 style="margin:14px 0 6px">Entram na sprint (${r.escolhidas.length})</h4>${r.escolhidas.map(({x, e}, i) => `<label class="ckl"><input type="checkbox" checked data-sa="${i}"><span><b>${esc(x.entrega)}</b><span class="sub"> · ${esc(nomeCurto(x.responsavel))} · ${(PRIOR[x.prioridade] || PRIOR.media)[0]} · prazo ${br(x.fim_previsto)} · ${e.toLocaleString('pt-BR', {maximumFractionDigits:1})} dia(s)</span></span></label>`).join('')}` : '<p class="empty">Nada a puxar: o backlog está vazio ou todos estão sem capacidade.</p>'}
+    ${r.fora.length ? `<details style="margin-top:10px"><summary class="sub" style="cursor:pointer;font-weight:600;color:var(--blue)">Ficam de fora (${r.fora.length})</summary>${r.fora.map(f => `<div class="sub" style="margin-top:6px">${esc(f.x.entrega)}: <b>${esc(f.motivo)}</b></div>`).join('')}</details>` : ''}</div>
+    <div class="mf"><span class="sp"></span><button type="button" class="btn" data-a="fechar">Cancelar</button><button class="btn btn-p" data-a="sprint-auto-ok" ${r.escolhidas.length ? '' : 'disabled'}>Aplicar</button></div>`, 'lg');
+}
+function modalLinkCliente(pid){
+  const P = projeto(pid), l = LINKS.find(k => k.projeto_id === pid && k.ativo), base = location.href.split('#')[0].split('?')[0].replace(/index\.html$/, '').replace(/[^/]*\.html$/, '');
+  const url = l ? base + 'relatorio.html?t=' + l.token : '';
+  abrir(`${cab('Compartilhar ' + esc(P.nome) + ' com o cliente')}<div class="mb">
+    <p class="sub">Página só de leitura com o avanço, a curva S e as entregas. Não mostra nomes da equipe, comentários, custos nem decisões internas.</p>
+    ${l ? `<div class="addl"><input class="inp" id="lk-url" readonly value="${esc(url)}"><button class="btn" data-a="copiar-campo" data-id="lk-url">${isvg('copy')}Copiar</button></div><div class="row"><a class="btn btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${isvg('link')}Abrir como o cliente vê</a><span class="sp"></span><button class="btn btn-sm btn-d" data-a="link-revogar" data-id="${esc(l.token)}">Desativar link</button></div><p class="sub">Desativar faz o link parar na hora. Você pode gerar outro depois.</p>`
+      : `<button class="btn btn-p" data-a="link-gerar" data-id="${esc(pid)}">${isvg('share')}Gerar link</button>`}</div>
+    <div class="mf"><span class="sp"></span><button type="button" class="btn" data-a="fechar">Fechar</button></div>`);
+}
+
+/* ---------- ações ---------- */
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  const a = el.dataset.a, id = el.dataset.id;
+  try {
+    switch (a){
+      case 'decisao-nova': modalDecisao(id); break;
+      case 'decisao-del': if (el.dataset.ok){ await API.delDecisao(id); await recarregar(); toast('Decisão excluída.'); } else { el.dataset.ok = '1'; el.innerHTML = 'Excluir?'; el.classList.remove('btn-i'); } break;
+      case 'ata': modalAta(); break;
+      case 'ata-salvar': { const xs = MODAL_ATA.filter((_, i) => { const c = document.querySelector(`[data-at="${i}"]`); return c && c.checked; }); if (!xs.length) break;
+        await API.addDecisoes(xs.map(t => ({projeto_id:$('#at-p').value, tarefa_id:null, texto:t.slice(0, 1000), origem:'ata', data:$('#at-d').value || hoje()}))); fechar(); toast(`${xs.length} decisão(ões) registrada(s).`); await recarregar(); break; }
+      case 'bloquear': modalBloqueio(id); break;
+      case 'desbloquear': await API.bloquear(id, null); await recarregar(true); gavetaTarefa(id); toast('Tarefa desbloqueada.'); break;
+      case 'copiar-txt': try { await navigator.clipboard.writeText(id); toast('Copiado: ' + id); } catch (x){ toast(id); } break;
+      case 'copiar-campo': { const i = document.getElementById(id); i.select(); try { await navigator.clipboard.writeText(i.value); } catch (x){ document.execCommand('copy'); } toast('Link copiado.'); break; }
+      case 't-dep-tira': if (TM){ TM.deps = TM.deps.filter(k => k !== id); TM.opts(); TM.cal(); } break;
+      case 'sprint-auto': modalSprintAuto(); break;
+      case 'sprint-auto-ok': { if (!SA) break; const ids = SA.r.escolhidas.filter((_, i) => { const c = document.querySelector(`[data-sa="${i}"]`); return c && c.checked; }).map(k => k.x.id); if (!ids.length) break;
+        el.disabled = true; let s = SA.alvo;
+        if (s.nova){ const {nova, ...n} = s; s = await API.criarSprint({...n, objetivo:null}); }
+        await API.setTarefas(ids, {sprint_id:+s.id}); fechar(); toast(`${ids.length} tarefa(s) na ${s.nome}.`); UI.qs = null; await recarregar(); break; }
+      case 'link-cliente': modalLinkCliente(id); break;
+      case 'link-gerar': await API.criarLink(id); await recarregar(true); modalLinkCliente(id); toast('Link criado. Copie e envie para o cliente.'); break;
+      case 'link-revogar': { const l = LINKS.find(k => k.token === id); await API.revogarLink(id); await recarregar(true); if (l) modalLinkCliente(l.projeto_id); toast('Link desativado.'); break; }
+    }
+  } catch (err){ toast('Não foi possível concluir: ' + err.message, true); }
+});
+document.addEventListener('input', e => { if (e.target.dataset && e.target.dataset.f === 'dq'){ UI.dq = e.target.value; const p = e.target.selectionStart; render(); const n = document.querySelector('[data-f="dq"]'); if (n){ n.focus(); n.setSelectionRange(p, p); } } });
+
+/* manual e tour */
+MANUAL.splice(6, 0,
+  ['previsao', 'dice', 'Previsões e prazo realista', ['<ul><li><b>Chance de cumprir o prazo</b>: o TRIPRO simula 2.000 cenários com o avanço real de cada semana e mostra a data mais provável (P50) e a data com folga (P85). Prometa a P85.</li><li><b>Calibração</b>: compara o que cada pessoa e cada módulo planejou com o que levou de verdade. Ao cadastrar uma tarefa, sugere um prazo realista.</li><li><b>Dependências</b>: em Editar, use "Depende de". Se a anterior atrasa, a tela Previsões mostra o efeito em cadeia até o fim do projeto.</li></ul>']],
+  ['bloqueio', 'block', 'Bloqueios e decisões', ['<ul><li>Escreva num comentário "travado", "aguardando" ou "sem acesso": a tarefa ganha a marca <b>Bloqueada</b>. "Liberado" ou "resolvido" tira a marca.</li><li>Comentários com "decidimos", "ficou definido" ou "aprovado pelo cliente" viram registro na tela <b>Decisões</b>.</li><li>Em Decisões, <b>Colar ata</b> separa o que foi decidido numa reunião.</li></ul>']],
+  ['sprintauto', 'spark', 'Sprint automática', ['<ul><li>Em Sprints, <b>Montar automaticamente</b> escolhe as tarefas pela prioridade e pelo prazo, respeitando dependências, bloqueios e a capacidade de cada pessoa (80% dos dias úteis, ajustado pelo histórico).</li><li>Você revisa, desmarca o que quiser e aplica.</li></ul>']],
+  ['github', 'git', 'GitHub, custo e cliente', ['<ul><li>Cada tarefa tem um código (ex.: <code>#A04</code>). Cite no commit: a tarefa vai para Fazendo e mostra o commit. "fecha #A04" ou PR aceito leva para Em revisão.</li><li><b>Custo</b> (só administradores): cadastre o valor da hora em Configurações e lance as horas no avanço. O projeto mostra orçamento, valor entregue e custo real.</li><li><b>Cliente</b>: no projeto, Compartilhar com cliente gera um link só de leitura, que pode ser desativado a qualquer hora.</li></ul>']]);
 
 /* ---------- modais e gaveta ---------- */
 let GV = null, TM = null, EVP = [];

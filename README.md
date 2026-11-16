@@ -84,3 +84,17 @@ Migração nova: `011_convites_mencoes_notificacoes.sql` (já aplicada). Funçã
 - **Usuários:** convidar por e-mail (entra já aprovado), aprovar, rejeitar, bloquear, desbloquear e remover.
 - **Agenda do time:** filtros por projeto, responsável e situação; reuniões minhas e da equipe; prazos com a cor da situação; participantes notificados.
 - **Tema claro/escuro, tour guiado e manual** (menu Ajuda).
+
+## v5 · inteligência (previsões, dependências, custo, GitHub e cliente)
+
+- **Previsões** (menu Acompanhamento): simulação de 2.000 cenários com o avanço real de cada semana. Mostra a chance de cumprir o prazo, a data mais provável (P50) e a data com folga (P85).
+- **Calibração**: fator real ÷ planejado por pessoa e por módulo. O cadastro de tarefa sugere um prazo realista.
+- **Dependências** ("Depende de" no cadastro) e **atraso em cadeia**.
+- **Bloqueios automáticos**: comentários com "travado", "aguardando" ou "sem acesso" marcam a tarefa; "liberado" ou "resolvido" desmarcam.
+- **Decisões**: comentários com "decidimos" ou "ficou definido" entram sozinhos; também é possível colar uma ata.
+- **Sprint automática**: montada pela capacidade de cada pessoa, pelas prioridades e pelas dependências.
+- **Custo e valor entregue** em R$, visível só para administradores. O valor da hora fica em Configurações; as horas são lançadas no avanço.
+- **GitHub**: a função `github` recebe o webhook. Crie o segredo `GITHUB_WEBHOOK_SECRET` no Supabase e o mesmo valor no webhook do repositório (eventos push e pull_request).
+- **Link do cliente**: `relatorio.html?t=<token>` é uma página só de leitura, gerada e desativada pelo administrador no projeto. Os dados vêm da função `relatorio`.
+
+Migração: `supabase/012_inteligencia.sql`.

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Acompanhamento do projeto</title>
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{--navy:#142C65;--blue:#2453AB;--cyan:#25C4EE;--bg:#F5F7FB;--surface:#fff;--ink:#142C65;--text:#24304D;--muted:#6B7A99;--line:#E7ECF4;--neu:#EEF2F8;--ok:#17845A;--ok-bg:#E7F6EF;--crit:#C83B3B;--crit-bg:#FCECEC;--warn:#B7700F;--warn-bg:#FFF4E2;--sky:#EEF4FF;--plan:#A9B5CC}
+@media (prefers-color-scheme:dark){:root{--bg:#0D1424;--surface:#141D31;--ink:#E8EEFA;--text:#C9D3E6;--muted:#8D9AB8;--line:#24304B;--neu:#1F2A44;--ok:#3FC28A;--ok-bg:#12352A;--crit:#F07171;--crit-bg:#3A1A1F;--warn:#F0B04A;--warn-bg:#3A2A12;--sky:#1A2B50;--blue:#6FA0FF;--plan:#5D6B88}}
+*{box-sizing:border-box;margin:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14.5px;line-height:1.5}
+header{background:var(--navy);color:#fff;padding:18px 16px}
+.w{max-width:980px;margin:0 auto;padding:0 16px}
+header .w{display:flex;align-items:center;gap:12px;padding:0}
+.lg{width:38px;height:38px;border-radius:10px;background:#fff;display:grid;place-items:center;flex:none}.lg img{width:28px;height:28px}
+header b{font-size:17px;letter-spacing:.02em}header span{opacity:.75;font-size:13px;margin-left:auto}
+main{padding:24px 0 40px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:clamp(22px,4vw,30px);color:var(--ink);letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 16px}
+.kpi span{font-size:12.5px;color:var(--muted);display:block}.kpi b{font-size:24px;color:var(--ink);font-weight:700;letter-spacing:-.02em}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.card h2{font-size:15px;color:var(--ink);padding:14px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.card h2 .lgd{margin-left:auto;font-weight:500;font-size:12px;color:var(--muted);display:flex;gap:12px}.lgd i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.cb{padding:16px 18px}
+svg text{font-family:inherit;fill:var(--muted);font-size:11px}
+.mod{margin-bottom:12px}.mod b{display:flex;justify-content:space-between;color:var(--ink);font-size:13.5px;margin-bottom:5px}
+.bar{height:7px;border-radius:4px;background:var(--neu);overflow:hidden}.bar i{display:block;height:100%;background:var(--blue);border-radius:4px}.bar i.ok{background:var(--ok)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th{text-align:left;font-size:12px;color:var(--muted);font-weight:500;padding:9px 18px;border-bottom:1px solid var(--line)}td{padding:10px 18px;border-bottom:1px solid var(--line);color:var(--ink)}tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:2px 9px;border-radius:11px;font-size:11.5px;font-weight:600;white-space:nowrap;background:var(--neu);color:var(--muted)}.p-ok{background:var(--ok-bg);color:var(--ok)}.p-crit{background:var(--crit-bg);color:var(--crit)}.p-run{background:var(--sky);color:var(--blue)}.p-warn{background:var(--warn-bg);color:var(--warn)}
+.tw{overflow-x:auto}.msg{text-align:center;padding:60px 16px;color:var(--muted)}
+@media (max-width:600px){th:nth-child(2),td:nth-child(2){display:none}th,td{padding:9px 12px}}
+</style>
+</head>
+<body>
+<header><div class="w"><span class="lg"><img src="icons/logo-mark.png" alt=""></span><b>TRIPRO</b><span>Relatório de acompanhamento</span></div></header>
+<main class="w" id="m"><p class="msg">Carregando…</p></main>
+<script>
+'use strict';
+const URL_FN = 'https://wtbhkhkrtmyfzyzegncj.supabase.co/functions/v1/relatorio';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DIA = 864e5, T = d => Date.parse(d + 'T00:00:00Z'), iso = ms => new Date(ms).toISOString().slice(0, 10);
+const br = d => d ? d.slice(8, 10) + '/' + d.slice(5, 7) + '/' + d.slice(2, 4) : '–', pct = v => isFinite(v) ? v.toLocaleString('pt-BR', {maximumFractionDigits:1}) + '%' : '–';
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const hoje = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const m = document.getElementById('m');
+function erro(t){ m.innerHTML = `<p class="msg">${esc(t)}</p>`; }
+const t = new URLSearchParams(location.search).get('t');
+if (!t) erro('Link incompleto. Peça um novo link a quem compartilhou.');
+else fetch(URL_FN + '?t=' + encodeURIComponent(t)).then(r => r.ok ? r.json() : Promise.reject()).then(desenhar).catch(() => erro('Este link não está mais ativo. Peça um novo link a quem compartilhou.'));
+
+function desenhar(d){
+  const P = d.projeto, ts = d.tarefas.map(x => ({...x, peso:Number(x.peso)})), av = d.avancos.map(v => ({...v, percentual:Number(v.percentual)}));
+  document.title = P.nome + ' · acompanhamento';
+  if (!ts.length){ m.innerHTML = `<h1>${esc(P.nome)}</h1><p class="msg">O cronograma ainda não foi publicado.</p>`; return; }
+  const h = hoje(), tot = ts.reduce((s, x) => s + x.peso, 0) || 1;
+  const ult = (id, ate) => { let u = null; for (const v of av) if (v.tarefa_id === id && (!ate || v.data <= ate) && (!u || v.data >= u.data)) u = v; return u; };
+  const real = id => (ult(id) || {percentual:0}).percentual;
+  const pv = dd => { const r = T(dd); let s = 0; for (const x of ts){ const a = T(x.inicio), b = T(x.fim) + DIA; s += x.peso * clamp((r + DIA - a) / (b - a), 0, 1); } return s / tot * 100; };
+  const ev = dd => { let s = 0; for (const x of ts){ const u = ult(x.id, dd); s += x.peso * (u ? u.percentual / 100 : 0); } return s / tot * 100; };
+  const ini = ts.reduce((a, x) => x.inicio < a ? x.inicio : a, '9999'), fim = ts.reduce((a, x) => x.fim > a ? x.fim : a, '0000');
+  const Pp = pv(h), R = ev(h), vel = (R - ev(iso(T(h) - 28 * DIA))) / 28;
+  const prev = R >= 99.95 ? h : vel > .01 ? iso(T(h) + Math.ceil((100 - R) / vel) * DIA) : null;
+  const ent = ts.filter(x => real(x.id) >= 100 || x.estado === 'concluida').length;
+  // curva S
+  const W = 900, H = 260, L = 34, B = 24, t0 = T(ini), t1 = Math.max(T(fim), prev ? T(prev) : 0, T(h)), X = d => L + (T(d) - t0) / (t1 - t0 || 1) * (W - L - 10), Y = v => 10 + (1 - v / 100) * (H - B - 10);
+  const pts = []; for (let d = t0; d <= t1; d += Math.max(DIA, Math.round((t1 - t0) / 60 / DIA) * DIA)) pts.push(iso(d)); pts.push(iso(t1));
+  const linha = (f, ate) => pts.filter(d => !ate || d <= ate).map((d, i) => (i ? 'L' : 'M') + X(d).toFixed(1) + ' ' + Y(f(d)).toFixed(1)).join(' ');
+  const grade = [0, 25, 50, 75, 100].map(v => `<line x1="${L}" x2="${W - 10}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${v}%</text>`).join('');
+  const meses = []; for (let d = new Date(t0); d.getTime() <= t1; d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))){ const s = iso(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)); if (T(s) >= t0) meses.push(`<text x="${X(s)}" y="${H - 6}" text-anchor="middle">${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getUTCMonth()]}</text>`); }
+  const svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Curva S: planejado ${pct(Pp)}, realizado ${pct(R)}">${grade}${meses.join('')}
+    <path d="${linha(pv)}" fill="none" stroke="var(--plan)" stroke-width="2.5"/><path d="${linha(ev, h)} L${X(h)} ${Y(R)}" fill="none" stroke="var(--blue)" stroke-width="3"/>
+    ${prev && prev > h ? `<path d="M${X(h)} ${Y(R)} L${X(prev)} ${Y(100)}" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-dasharray="6 5"/>` : ''}
+    <line x1="${X(h)}" x2="${X(h)}" y1="10" y2="${H - B}" stroke="var(--ink)" stroke-dasharray="3 4" opacity=".4"/><circle cx="${X(h)}" cy="${Y(R)}" r="4.5" fill="var(--blue)"/></svg>`;
+  const mods = [...new Set(ts.map(x => x.modulo))].map(md => { const xs = ts.filter(x => x.modulo === md), w = xs.reduce((s, x) => s + x.peso, 0), r = xs.reduce((s, x) => s + x.peso * real(x.id) / 100, 0) / w * 100; return `<div class="mod"><b>${esc(md)}<span>${pct(r)}</span></b><div class="bar"><i class="${r >= 99.9 ? 'ok' : ''}" style="width:${r}%"></i></div></div>`; }).join('');
+  const sit = x => { const p = real(x.id); if (p >= 100 || x.estado === 'concluida') return ['Entregue', 'p-ok']; if (x.fim < h) return ['Atrasada', 'p-crit']; if (x.estado === 'revisao') return ['Em revisão', 'p-warn']; if (x.inicio <= h) return ['Em andamento', 'p-run']; return ['Planejada', '']; };
+  const linhas = ts.slice().sort((a, b) => a.fim.localeCompare(b.fim)).map(x => { const s = sit(x), p = Math.min(100, real(x.id)); return `<tr><td>${esc(x.entrega)}<div class="sub">${esc(x.modulo)}</div></td><td>${br(x.fim)}</td><td style="min-width:110px"><div class="bar"><i class="${p >= 100 ? 'ok' : ''}" style="width:${p}%"></i></div><span class="sub">${pct(p)}</span></td><td><span class="pill ${s[1]}">${s[0]}</span></td></tr>`; }).join('');
+  const dif = prev ? Math.round((T(prev) - T(fim)) / DIA) : null;
+  m.innerHTML = `<div><h1>${esc(P.nome)}</h1><p class="sub">${esc(P.descricao || '')}${P.descricao ? ' · ' : ''}atualizado em ${br(d.gerado_em.slice(0, 10))}</p></div>
+  <div class="kpis"><div class="kpi"><span>Planejado até hoje</span><b>${pct(Pp)}</b></div><div class="kpi"><span>Realizado</span><b>${pct(R)}</b></div><div class="kpi"><span>Entregas concluídas</span><b>${ent} / ${ts.length}</b></div><div class="kpi"><span>Término planejado</span><b>${br(fim)}</b></div><div class="kpi"><span>Término previsto</span><b>${prev ? br(prev) : '–'}</b>${dif !== null ? `<span>${dif > 0 ? dif + ' dias após o plano' : dif < 0 ? -dif + ' dias antes do plano' : 'no dia planejado'}</span>` : ''}</div></div>
+  <section class="card"><h2>Curva S<span class="lgd"><span><i style="background:var(--plan)"></i>Planejado</span><span><i style="background:var(--blue)"></i>Realizado</span><span><i style="background:var(--cyan)"></i>Projeção</span></span></h2><div class="cb">${svg}</div></section>
+  <section class="card"><h2>Avanço por etapa</h2><div class="cb">${mods}</div></section>
+  <section class="card"><h2>Entregas</h2><div class="tw"><table><thead><tr><th>Entrega</th><th>Prazo</th><th>Avanço</th><th>Situação</th></tr></thead><tbody>${linhas}</tbody></table></div></section>
+  <p class="sub">Página só de leitura gerada pelo TRIPRO. O realizado é o último avanço lançado em cada entrega, somado pelo esforço de cada uma. A projeção usa o ritmo das últimas 4 semanas.</p>`;
+}
+</script>
+</body>
+</html>
