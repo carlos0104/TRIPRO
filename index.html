@@ -1845,20 +1845,36 @@ async function estadoPush(){
   if (!PUSH.suporte || DEMO){ PUSH.ativo = DEMO ? !!PUSH.demo : false; return; }
   try { const r = await navigator.serviceWorker.getRegistration(); const s = r && await r.pushManager.getSubscription(); PUSH.ativo = !!s && Notification.permission === 'granted'; } catch (e){ PUSH.ativo = false; }
 }
+const diag = (etapa, extra) => { if (DEMO) return; try { fetch(CONFIG.SUPABASE_URL + '/functions/v1/push', {method:'POST', headers:{'Content-Type':'application/json'}, keepalive:true, body:JSON.stringify({tipo:'diag', etapa, extra:String(extra ?? '').slice(0, 300), ua:navigator.userAgent.slice(0, 140), user:USER && USER.email})}).catch(() => {}); } catch (e){} };
+const comTempo = (p, ms, nome) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(nome + ' não respondeu')), ms))]);
 async function ativarPush(){
   if (DEMO){ PUSH.demo = true; PUSH.ativo = true; toast('Na demonstração não chega notificação. No app publicado, o aparelho pede sua permissão.'); return; }
-  if (!PUSH.suporte){ toast(ehIOS() ? 'No iPhone, instale o TriPro na tela de início (Compartilhar, Adicionar à Tela de Início) e abra por lá.' : 'Este navegador não aceita notificações.', true); return; }
-  const p = await Notification.requestPermission();
-  if (p !== 'granted'){ toast('Permissão negada. Libere as notificações do TriPro nas configurações do navegador ou do celular.', true); return; }
-  const k = await sb.functions.invoke('push', {body:{tipo:'chave'}}); if (k.error || !k.data || !k.data.chave) throw (k.error || new Error('servidor sem chave'));
-  const reg = await navigator.serviceWorker.ready;
-  let s = await reg.pushManager.getSubscription();
-  if (s && s.options && s.options.applicationServerKey){ const atual = btoa(String.fromCharCode(...new Uint8Array(s.options.applicationServerKey))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); if (atual !== k.data.chave){ await s.unsubscribe(); s = null; } }
-  if (!s) s = await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64u(k.data.chave)});
-  const j = s.toJSON();
-  ok(await sb.from('push_inscricoes').upsert({endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth, aparelho:navigator.userAgent.slice(0, 180)}, {onConflict:'endpoint'}));
-  PUSH.ativo = true; toast('Notificações ativadas neste aparelho.');
-  sb.functions.invoke('push', {body:{tipo:'teste'}}).catch(() => {});
+  let etapa = 'inicio';
+  try {
+    diag('inicio', `suporte=${PUSH.suporte} perm=${'Notification' in window ? Notification.permission : 'sem'} sw=${'serviceWorker' in navigator} ctrl=${!!(navigator.serviceWorker && navigator.serviceWorker.controller)} standalone=${typeof instalado === 'function' && instalado()}`);
+    if (!PUSH.suporte){ toast(ehIOS() ? 'No iPhone, instale o TriPro na tela de início (Compartilhar, Adicionar à Tela de Início) e abra por lá.' : 'Este navegador não aceita notificações.', true); diag('sem-suporte'); return; }
+    etapa = 'permissao';
+    const p = Notification.permission === 'granted' ? 'granted' : await comTempo(Notification.requestPermission(), 60000, 'A pergunta de permissão');
+    diag('permissao', p);
+    if (p !== 'granted'){ toast('Permissão negada. Libere as notificações do TriPro nas configurações do navegador ou do celular.', true); return; }
+    etapa = 'chave';
+    const k = await sb.functions.invoke('push', {body:{tipo:'chave'}}); if (k.error || !k.data || !k.data.chave) throw (k.error || new Error('servidor sem chave'));
+    etapa = 'service worker';
+    let reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) reg = await navigator.serviceWorker.register('sw.js');
+    reg = await comTempo(navigator.serviceWorker.ready, 15000, 'O service worker');
+    etapa = 'inscricao';
+    let s = await reg.pushManager.getSubscription();
+    if (s && s.options && s.options.applicationServerKey){ const atual = btoa(String.fromCharCode(...new Uint8Array(s.options.applicationServerKey))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); if (atual !== k.data.chave){ await s.unsubscribe(); s = null; } }
+    if (!s) s = await comTempo(reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64u(k.data.chave)}), 30000, 'O cadastro no serviço de notificações');
+    diag('inscrito', new URL(s.endpoint).host);
+    etapa = 'gravar';
+    const j = s.toJSON();
+    ok(await sb.from('push_inscricoes').upsert({endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth, aparelho:navigator.userAgent.slice(0, 180)}, {onConflict:'endpoint'}));
+    diag('gravado');
+    PUSH.ativo = true; toast('Notificações ativadas neste aparelho. Um aviso de teste vai chegar em instantes.');
+    sb.functions.invoke('push', {body:{tipo:'teste'}}).catch(() => {});
+  } catch (err){ diag('erro:' + etapa, err && (err.message || err.name || err)); throw new Error(`etapa "${etapa}": ${err && (err.message || err.name) || err}`); }
 }
 async function desativarPush(){
   if (DEMO){ PUSH.demo = false; PUSH.ativo = false; return; }

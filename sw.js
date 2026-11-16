@@ -1,6 +1,6 @@
 // TriPro · service worker
 // Guarda só a "casca" do app (página, ícones, biblioteca). Dados vêm sempre do Supabase, ao vivo.
-const VERSAO = 'tripro-v13';
+const VERSAO = 'tripro-v14';
 const CASCA = ['./', './index.html', './manifest.webmanifest', './icons/logo-mark.png', './icons/google-g.png', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/badge-96.png'];
 const LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
 

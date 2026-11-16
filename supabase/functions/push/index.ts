@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
   try {
     const b = await req.json().catch(() => ({}));
+    if (b.tipo === "diag") { console.log("diag", JSON.stringify({ etapa: String(b.etapa).slice(0, 60), extra: String(b.extra ?? "").slice(0, 300), ua: String(b.ua ?? "").slice(0, 140), user: String(b.user ?? "").slice(0, 80) })); return json({ ok: true }); }
     if (b.tipo === "chave") return json({ chave: (await chaves()).publica });
     if (b.tipo === "notificacao") {
       const d = await rpc("push_pendente", { nid: Number(b.id) || 0 });
