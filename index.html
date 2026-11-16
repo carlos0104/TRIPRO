@@ -127,6 +127,18 @@ body.sb-mini .app{grid-template-columns:var(--sbm) minmax(0,1fr)}
 .nl.on{background:rgba(139,196,255,.14);color:#fff}
 .nl.on::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--cyan)}
 .nl .bd{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--cyan);color:#0B1838;font-size:11.5px;font-weight:700;display:grid;place-items:center}
+.ng{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+.nh .chv{margin-left:auto;display:grid;place-items:center;color:#7F97C9;transition:transform .15s}
+.nh .bd+.chv{margin-left:6px}
+.ng.ab .nh .chv{transform:rotate(180deg)}
+.ng.tem>.nh{color:#fff}
+.nsub{display:none;flex-direction:column;gap:2px;margin-left:21px;padding-left:10px;border-left:1px solid rgba(139,196,255,.18)}
+.ng.ab .nsub{display:flex}
+.nsub .nl{height:36px;font-size:13.5px;padding:0 10px}
+.nsub .nl svg{width:17px;height:17px}
+.nsub .nl.on::before{left:-11px}
+body.sb-mini .nh{display:none}body.sb-mini .nsub{display:flex;margin-left:0;padding-left:0;border-left:0}body.sb-mini .ng{margin-top:8px;padding-top:8px;border-top:1px solid rgba(139,196,255,.14)}body.sb-mini .nsub .nl{height:40px;padding:0}body.sb-mini .nsub .nl.on::before{left:-12px}
+@media (max-width:959px){body.sb-mini .nh{display:flex}body.sb-mini .nsub{display:none;margin-left:21px;padding-left:10px;border-left:1px solid rgba(139,196,255,.18)}body.sb-mini .ng.ab .nsub{display:flex}body.sb-mini .ng{border-top:0;padding-top:0;margin-top:6px}body.sb-mini .nsub .nl{padding:0 10px;height:36px}}
 .sb-f{border-top:1px solid rgba(139,196,255,.14);padding-top:8px;margin-top:8px;display:flex;flex-direction:column;gap:2px}
 .me{display:flex;align-items:center;gap:10px;padding:6px 6px 6px 8px;border-radius:10px;color:#fff;white-space:nowrap}
 .me>a{display:flex;align-items:center;gap:10px;min-width:0;flex:1;color:inherit;text-decoration:none}
@@ -889,6 +901,7 @@ const admin = () => ME && ME.papel === 'admin';
 const pendentes = () => MEMBROS.filter(m => m.status === 'pendente').length;
 function setPj(id){ UI.pj = id && projeto(id) ? id : 'all'; LS.set('tripro-pj', UI.pj); UI.mod = 'all'; UI.resp = 'all'; }
 const escopo = () => UI.pj === 'all' ? 'todos os projetos' : esc(projeto(UI.pj).nome);
+let MENU_FECHADO = (LS.get('tripro-menu-fechado') || '').split(',').filter(Boolean);
 const tema = () => document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 function trocarTema(){ const t = tema() === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = t; LS.set('tripro-tema', t); const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = t === 'dark' ? '#0B1838' : '#142C65'; render(); }
 
@@ -913,20 +926,16 @@ function casca(corpo){
   const R = rota(), on = r => R.r === r ? ' on' : '', nome = ME.nome || USER.email, pend = pendentes(), nn = NOTIF.filter(k => !k.lida).length;
   const link = (r, ico, txt, extra = '', tour = '') => `<a class="nl${on(r)}" href="#/${r}" title="${txt}" ${tour ? `data-tour="${tour}"` : ''}>${ICO[ico]}<span class="lbl">${txt}</span>${extra}</a>`;
   const mins = D.comentarios.filter(c => (c.mencoes || []).includes(USER.id)).length;
+  const grupo = (k, ico, txt, itens) => { const tem = itens.some(i => i[0] === R.r), ab = tem || !MENU_FECHADO.includes(k), tot = itens.reduce((s, i) => s + (i[3] || 0), 0);
+    return `<div class="ng${ab ? ' ab' : ''}${tem ? ' tem' : ''}"><button class="nl nh" data-a="grp" data-id="${k}" aria-expanded="${ab}" title="${txt}">${ICO[ico]}<span class="lbl">${txt}</span>${!ab && tot ? `<span class="bd">${tot}</span>` : ''}<span class="chv">${isvg('down', 15)}</span></button>
+      <div class="nsub">${itens.map(([r, i, t, n]) => link(r, i, t, n ? `<span class="bd">${n}</span>` : '', r === 'quadro' ? 'quadro' : '')).join('')}</div></div>`; };
   return `<div class="app"><aside class="sb" aria-label="Menu principal">
     <div class="sb-h"><a href="#/hoje" style="text-decoration:none" aria-label="TRIPRO, hoje">${MARCA(34)}</a></div>
     <nav data-tour="menu">
       ${link('hoje', 'hoje', 'Hoje')}
-      <div class="grp">Trabalho</div>
-      ${link('quadro', 'board', 'Quadro', '', 'quadro')}
-      ${link('agenda', 'cal', 'Agenda')}
-      ${link('sprints', 'sprint', 'Sprints')}
-      <div class="grp">Acompanhamento</div>
-      ${link('projetos', 'chart', 'Projetos e Curva S')}
-      ${link('entregas', 'list', 'Todas as tarefas')}
-      <div class="grp">Equipe</div>
-      ${link('conversas', 'chat', 'Conversas', mins ? `<span class="bd">${mins}</span>` : '')}
-      ${admin() ? link('usuarios', 'users', 'Usuários e acessos', pend ? `<span class="bd">${pend}</span>` : '') : ''}
+      ${grupo('trabalho', 'board', 'Trabalho', [['quadro', 'board', 'Quadro'], ['agenda', 'cal', 'Agenda'], ['sprints', 'sprint', 'Sprints']])}
+      ${grupo('acomp', 'chart', 'Acompanhamento', [['projetos', 'chart', 'Projetos'], ['entregas', 'list', 'Todas as tarefas']])}
+      ${grupo('equipe', 'users', 'Equipe', [['conversas', 'chat', 'Conversas', mins], ...(admin() ? [['usuarios', 'users', 'Usuários e acessos', pend]] : [])])}
     </nav>
     <div class="sb-f">
       ${link('ajuda', 'help', 'Ajuda e manual', '', 'ajuda')}
@@ -984,11 +993,6 @@ function telaHoje(){
         <section class="card"><div class="card-h"><span class="hic">${isvg('cal')}</span><h2>Hoje na agenda</h2><span class="sp"></span><a class="sub" href="#/agenda">Abrir agenda</a></div><div class="card-b" style="padding-top:2px;padding-bottom:2px">${evs.map(e => `<div class="ag-it" data-a="ev-ver" data-id="${e.id}" style="--c:${e.autor_id === USER.id || (e.participantes || []).includes(USER.id) ? '#2453AB' : '#6B4FD8'}"><div class="ag-d"><b style="font-size:13.5px">${e.dia_inteiro ? isvg('cal', 15) : hora(e.inicio)}</b><span>${e.dia_inteiro ? 'dia' : 'hoje'}</span></div><div><b class="t">${esc(e.titulo)}</b><span class="sub">${e.dia_inteiro ? 'Dia inteiro' : hora(e.inicio) + ' a ' + hora(e.fim)}${e.local ? ' · ' + esc(e.local) : ''}</span></div></div>`).join('')}${venceHoje.map(x => `<div class="ag-it" data-a="ver" data-id="${esc(x.id)}" style="--c:#D9902B"><div class="ag-d"><b>${isvg('clock', 15)}</b><span>prazo</span></div><div><b class="t">${esc(x.entrega)}</b><span class="sub">Vence hoje · ${esc(x.responsavel)}</span></div></div>`).join('') || (evs.length ? '' : '<p class="empty">Nada marcado para hoje.</p>')}</div></section>
         ${cardSprint()}
       </div></div>
-    <div class="kpis">
-      <div class="kpi"><span>Projetos ativos</span><b class="tn">${D.projetos.filter(p => p.status !== 'concluido' && noFiltro({projeto_id:p.id})).length}</b><small>${D.projetos.length} no total</small></div>
-      <div class="kpi"><span>Tarefas entregues</span><b class="tn">${conc}<span style="font-size:.6em;color:var(--muted);font-weight:600"> / ${ts.length}</span></b><small>${escopo()}</small></div>
-      <div class="kpi ${atras.length ? 'bad' : 'good'}"><span>Atrasadas</span><b class="tn">${atras.length}</b><small>passaram do prazo</small></div>
-      <div class="kpi"><span>Vencem na semana</span><b class="tn">${semana.length}</b><small>${br(seg)} a ${br(dom)}</small></div></div>
     ${UI.pj === 'all' ? `<div class="ph"><div><h1 style="font-size:18px">Projetos</h1></div><span class="sp"></span><a class="sub" href="#/projetos">Ver todos</a></div><div class="pgrid">${D.projetos.filter(p => p.status !== 'concluido').map(cardProjeto).join('') || '<div class="card card-b empty">Nenhum projeto ainda.</div>'}</div>` : ''}`);
 }
 function cardProjeto(p){
@@ -1007,7 +1011,7 @@ function telaProjetos(){
     return `<tr data-a="pj-abrir" data-id="${esc(p.id)}"><td><div class="row" style="flex-wrap:nowrap"><span class="dotp lg" style="background:${corP(p.id)}">${esc(ini(p.nome))}</span><div style="min-width:0"><b>${esc(p.nome)}</b><div class="sub">${esc(p.descricao || '')}</div></div></div></td><td><span class="pill ${st[1]}">${st[0]}</span></td>
       <td style="min-width:150px"><div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i class="${R >= 99.9 ? 'ok' : ''}" style="width:${R}%"></i></div><span class="tn sub">${pct(R, 0)}</span></div></td>
       <td class="tn hide-m">${A ? pct(A.P, 0) : '–'}</td><td class="tn hide-m">${A && A.prev ? brc(A.prev) : '–'}</td><td class="tn">${ts.filter(x => atual(x.id) >= 100).length}/${ts.length}</td><td>${at ? `<span class="pill p-crit">${at}</span>` : '<span class="sub">–</span>'}</td></tr>`; }).join('');
-  return casca(`${cabeca('Projetos e Curva S', `${D.projetos.length} projeto${D.projetos.length === 1 ? '' : 's'}. Clique em um para ver a Curva S, o resumo e as tarefas dele.`, admin() ? `<button class="btn btn-p" data-a="projeto-novo">${ICO.plus}Novo projeto</button>` : '')}
+  return casca(`${cabeca('Projetos', `${D.projetos.length} projeto${D.projetos.length === 1 ? '' : 's'}. Clique em um para ver a Curva S, o resumo e as tarefas dele.`, admin() ? `<button class="btn btn-p" data-a="projeto-novo">${ICO.plus}Novo projeto</button>` : '')}
     <div class="pgrid">${D.projetos.filter(p => p.status !== 'concluido').map(cardProjeto).join('')}</div>
     <section class="card"><div class="card-h"><h2>Lista de projetos</h2><span class="sp"></span><label class="search">${ICO.search}<input class="sel" data-f="pq2" placeholder="Buscar projeto" value="${esc(UI.pq2 || '')}" aria-label="Buscar projeto"></label></div><div class="tbl-w"><table><thead><tr><th>Projeto</th><th>Situação</th><th>Realizado</th><th class="hide-m">Planejado</th><th class="hide-m">Término previsto</th><th>Tarefas</th><th>Atrasadas</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="empty">Nenhum projeto encontrado.</td></tr>'}</tbody></table></div></section>`);
 }
@@ -1508,7 +1512,7 @@ let CMD = {q:'', sel:0, ops:[], resp:null, carregando:false};
 const ehPergunta = q => /\?\s*$/.test(q) || /^(o que|oque|qual|quais|quem|quando|como|quant|por que|porque|onde|tem |existe|me diga|resuma|liste|mostre)/i.test(norm(q));
 function opsCmd(){
   const q = CMD.q.trim(), n = norm(q), ops = [];
-  const telas = [['Hoje','hoje','hoje'],['Quadro','board','quadro'],['Agenda','cal','agenda'],['Sprints','sprint','sprints'],['Projetos e Curva S','chart','projetos'],['Todas as tarefas','list','entregas'],['Conversas','chat','conversas'],['Ajuda e manual','help','ajuda'],['Configurações','gear','conta']].concat(admin() ? [['Usuários e acessos','users','usuarios']] : []);
+  const telas = [['Hoje','hoje','hoje'],['Quadro','board','quadro'],['Agenda','cal','agenda'],['Sprints','sprint','sprints'],['Projetos','chart','projetos'],['Todas as tarefas','list','entregas'],['Conversas','chat','conversas'],['Ajuda e manual','help','ajuda'],['Configurações','gear','conta']].concat(admin() ? [['Usuários e acessos','users','usuarios']] : []);
   if (!q){
     ops.push({g:'Ações rápidas', ico:'plus', t:'Nova tarefa', s:'Abre o formulário completo', a:() => modalTarefa()});
     ops.push({g:'Ações rápidas', ico:'cal', t:'Novo evento', s:'Reunião ou compromisso na agenda', a:() => modalEvento(null, hoje())});
@@ -1565,7 +1569,7 @@ async function criarRapido(it, completo){
 
 /* ---------- tour guiado ---------- */
 const TOUR = [
-  ['[data-tour="menu"]', 'Menu organizado', 'Hoje é a tela inicial. Em Trabalho ficam o Quadro, a Agenda e as Sprints. Em Acompanhamento, a Curva S de cada projeto.'],
+  ['[data-tour="menu"]', 'Menu organizado', 'Hoje é a tela inicial. Trabalho, Acompanhamento e Equipe abrem e fecham. Dentro de Trabalho ficam Quadro, Agenda e Sprints; em Acompanhamento, os Projetos com a Curva S.'],
   ['[data-tour="projeto"]', 'Escolha o projeto', 'Aqui você troca de projeto, com busca. Todas as telas passam a mostrar só o projeto escolhido.'],
   ['[data-tour="cmd"]', 'Barra inteligente', 'Busque qualquer coisa, crie tarefa escrevendo uma frase ("Tela de login amanhã @Rafael") ou pergunte à IA. Atalho: Ctrl + K.'],
   ['[data-tour="nova"]', 'Nova tarefa', 'O formulário já vem preenchido com projeto, sprint ativa e prazo. Só o título é obrigatório.'],
@@ -1665,6 +1669,7 @@ document.addEventListener('click', async e => {
       case 'sair': fechar(); await API.sair(); break;
       case 'recarregar': location.reload(); break;
       case 'sb': if (largo()){ const m = document.body.classList.toggle('sb-mini'); LS.set('tripro-menu', m ? 'mini' : 'full'); } else document.body.classList.toggle('sb-open'); break;
+      case 'grp': { if (document.body.classList.contains('sb-mini') && largo()){ document.body.classList.remove('sb-mini'); LS.set('tripro-menu', 'full'); MENU_FECHADO = MENU_FECHADO.filter(k => k !== id); } else MENU_FECHADO = MENU_FECHADO.includes(id) ? MENU_FECHADO.filter(k => k !== id) : MENU_FECHADO.concat(id); LS.set('tripro-menu-fechado', MENU_FECHADO.join(',')); render(); break; }
       case 'sb-fechar': document.body.classList.remove('sb-open'); break;
       case 'tema': trocarTema(); break;
       case 'tema-set': if (id === 'auto'){ delete document.documentElement.dataset.theme; LS.set('tripro-tema', ''); } else { document.documentElement.dataset.theme = id; LS.set('tripro-tema', id); } render(); break;
