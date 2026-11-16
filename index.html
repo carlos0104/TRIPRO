@@ -74,7 +74,14 @@ svg{flex:none}
 .note svg{color:var(--blue)}
 .a-sep{border:0;border-top:1px solid var(--line);margin:clamp(24px,2.3vw,44px) 0 clamp(16px,1.6vw,30px)}
 .demo{text-align:center}.demo b{display:block;font-size:12px;letter-spacing:.16em;color:#8A97B2;font-weight:600}.demo span{display:block;font-size:14.5px;color:#7A88A6;margin-top:6px}
-.a-rf{position:absolute;bottom:clamp(20px,3vw,60px);font-size:13px;color:var(--faint)}
+.a-rf{margin-top:clamp(24px,3vw,40px);font-size:13px;color:var(--faint)}
+.lgf{display:flex;flex-direction:column;gap:14px;margin-top:clamp(20px,2.2vw,36px)}
+.lgi{height:50px;font-size:15.5px;border-radius:12px}
+.lgb{height:clamp(50px,3.1vw,58px);border-radius:12px;font-size:16px}
+.lnk{color:var(--blue);font-weight:600;font-size:14px;padding:0}.lnk:hover{text-decoration:underline}
+.lgalt{margin-top:18px;text-align:center;font-size:14.5px;color:var(--muted)}
+.ou{display:flex;align-items:center;gap:12px;color:var(--faint);font-size:13px;margin:20px 0 0}.ou::before,.ou::after{content:"";flex:1;border-top:1px solid var(--line)}
+.a-box .gbtn{margin-top:14px}
 .a-who{display:flex;align-items:center;gap:14px;margin-bottom:26px;padding:14px;border:1px solid var(--line);border-radius:14px}
 .a-who b{display:block;color:var(--ink)}
 .a-btns{display:flex;gap:10px;margin-top:26px}.a-btns .btn{flex:1;height:48px}
@@ -447,6 +454,19 @@ const API = {
     const { error } = await sb.auth.signInWithOAuth({provider:'google', options:{redirectTo: location.origin + location.pathname}});
     if (error) throw error;
   },
+  async entrarSenha(email, senha){
+    if (DEMO){ API._demoIn = true; return iniciar(); }
+    const { error } = await sb.auth.signInWithPassword({email, password:senha}); if (error) throw error;
+  },
+  async criarConta(nome, email, senha){
+    if (DEMO) return {confirmar:true};
+    const { data, error } = await sb.auth.signUp({email, password:senha, options:{data:{full_name:nome}, emailRedirectTo:location.origin + location.pathname}});
+    if (error) throw error;
+    if (data.user && Array.isArray(data.user.identities) && !data.user.identities.length) throw new Error('User already registered');
+    return {confirmar:!data.session};
+  },
+  async esqueci(email){ if (DEMO) return; const { error } = await sb.auth.resetPasswordForEmail(email, {redirectTo:location.origin + location.pathname}); if (error) throw error; },
+  async novaSenha(senha){ if (DEMO) return; const { error } = await sb.auth.updateUser({password:senha}); if (error) throw error; },
   async sair(){ if (DEMO) API._demoIn = false; else await sb.auth.signOut(); USER = null; ME = null; location.hash = ''; render(); },
   async meuCadastro(){ if (DEMO) return {status:'aprovado', papel:'admin', receber_conclusoes:true, receber_resumo:true, email:USER.email, nome:'Carlos (demonstração)'}; const { data } = await sb.from('membros').select('*').eq('user_id', USER.id).maybeSingle(); return data; },
   async carregar(){
@@ -598,13 +618,49 @@ function ladoMarca(){
     <div class="a-foot">© TRIPRO · Trium</div></section>`;
 }
 const iconeG = () => CONFIG.ICONE_GOOGLE ? `<img src="${esc(CONFIG.ICONE_GOOGLE)}" alt="">` : '';
+const LG = {modo:'entrar', email:'', msg:'', recup:false, google:!!DEMO};
+const traduz = m => /invalid login credentials/i.test(m) ? 'E-mail ou senha incorretos.' : /email not confirmed/i.test(m) ? 'Confirme seu e-mail antes de entrar. Procure o link que enviamos (veja também o lixo eletrônico).' : /already registered|already exists/i.test(m) ? 'Este e-mail já tem conta. Entre com a senha ou use "Esqueci a senha".' : /provider is not enabled|unsupported provider/i.test(m) ? 'O login com Google ainda não foi ativado pelo administrador. Use e-mail e senha.' : /rate limit|too many/i.test(m) ? 'Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.' : /at least|weak|password should/i.test(m) ? 'Senha fraca. Use pelo menos 8 caracteres, misturando letras e números.' : m;
 function telaLogin(){
-  return `<div class="auth">${ladoMarca()}<section class="a-r"><div class="a-box">
-    <h2>Bem-vindo ao TRIPRO</h2><p class="s">Entre com sua conta para continuar.</p>
-    <button class="gbtn" id="gbtn" data-a="entrar"><span id="gi">${iconeG()}</span><span id="gtx">Continuar com Google</span></button>
-    <div class="note">${ICO.lock}<span>Novos acessos precisam ser aprovados pelo administrador.</span></div>
-    ${DEMO ? '<hr class="a-sep"><div class="demo"><b>AMBIENTE DE DEMONSTRAÇÃO</b><span>Você está visualizando dados de exemplo.</span></div>' : ''}
+  const m = LG.recup ? 'nova' : LG.modo, campo = (id, rot, tipo, extra = '') => `<div class="f"><label for="${id}">${rot}</label><input class="inp lgi" id="${id}" type="${tipo}" ${extra}></div>`;
+  const avisos = `<div id="lg-msg">${LG.msg ? `<div class="note" style="margin-top:14px">${ICO.lock}<span>${esc(LG.msg)}</span></div>` : ''}</div>`;
+  const google = !LG.google ? '' : `<div class="ou"><span>ou</span></div><button type="button" class="gbtn" id="gbtn" data-a="entrar"><span id="gi">${iconeG()}</span><span id="gtx">Continuar com Google</span></button>`;
+  const corpo = {
+    entrar: `<h2>Bem-vindo ao TRIPRO</h2><p class="s">Entre com sua conta para continuar.</p>${avisos}
+      <form id="flg" class="lgf">${campo('lg-e', 'E-mail', 'email', `required autocomplete="email" value="${esc(LG.email)}" placeholder="voce@exemplo.com"`)}${campo('lg-s', 'Senha', 'password', 'required autocomplete="current-password" minlength="6"')}
+        <div class="row" style="justify-content:space-between"><button type="button" class="lnk" data-a="lg" data-id="esqueci">Esqueci a senha</button></div>
+        <button class="btn btn-p lgb" id="lg-ok">Entrar</button></form>${google}
+      <p class="lgalt">Ainda não tem acesso? <button type="button" class="lnk" data-a="lg" data-id="criar">Criar conta</button></p>`,
+    criar: `<h2>Criar conta</h2><p class="s">Depois de confirmar o e-mail, o administrador aprova seu acesso.</p>${avisos}
+      <form id="flg" class="lgf">${campo('lg-n', 'Nome', 'text', 'required autocomplete="name" maxlength="80"')}${campo('lg-e', 'E-mail', 'email', `required autocomplete="email" value="${esc(LG.email)}"`)}
+        <div class="f2">${campo('lg-s', 'Senha', 'password', 'required autocomplete="new-password" minlength="8"')}${campo('lg-s2', 'Repita a senha', 'password', 'required autocomplete="new-password" minlength="8"')}</div>
+        <button class="btn btn-p lgb" id="lg-ok">Criar conta</button></form>
+      <p class="lgalt">Já tem conta? <button type="button" class="lnk" data-a="lg" data-id="entrar">Entrar</button></p>`,
+    esqueci: `<h2>Esqueci a senha</h2><p class="s">Enviamos um link para você criar uma senha nova.</p>${avisos}
+      <form id="flg" class="lgf">${campo('lg-e', 'E-mail', 'email', `required autocomplete="email" value="${esc(LG.email)}"`)}<button class="btn btn-p lgb" id="lg-ok">Enviar link</button></form>
+      <p class="lgalt"><button type="button" class="lnk" data-a="lg" data-id="entrar">Voltar para o login</button></p>`,
+    nova: `<h2>Nova senha</h2><p class="s">Escolha a senha que vai usar daqui em diante.</p>${avisos}
+      <form id="flg" class="lgf"><div class="f2">${campo('lg-s', 'Nova senha', 'password', 'required autocomplete="new-password" minlength="8"')}${campo('lg-s2', 'Repita a senha', 'password', 'required autocomplete="new-password" minlength="8"')}</div><button class="btn btn-p lgb" id="lg-ok">Salvar senha</button></form>`,
+  }[m];
+  return `<div class="auth">${ladoMarca()}<section class="a-r"><div class="a-box">${corpo}
+    ${m === 'entrar' ? `<div class="note">${ICO.lock}<span>Novos acessos precisam ser aprovados pelo administrador.</span></div>` : ''}
+    ${DEMO ? '<hr class="a-sep"><div class="demo"><b>AMBIENTE DE DEMONSTRAÇÃO</b><span>Qualquer e-mail e senha entram nos dados de exemplo.</span></div>' : ''}
   </div><div class="a-rf">${DEMO ? 'Acesso seguro · TRIPRO' : `Acesso seguro · TRIPRO · <a href="#" data-a="instalar" style="color:inherit">Instalar o app</a>`}</div></section></div>`;
+}
+function aviso(t){ LG.msg = t; const el = $('#lg-msg'); if (el) el.innerHTML = t ? `<div class="note" style="margin-top:14px">${ICO.lock}<span>${esc(t)}</span></div>` : ''; }
+function ligarLogin(){
+  const f = $('#flg'); if (!f) return;
+  f.addEventListener('submit', async e => { e.preventDefault();
+    const m = LG.recup ? 'nova' : LG.modo, b = $('#lg-ok'), txt = b.textContent, v = id => ($(id) || {}).value || '';
+    if ($('#lg-e')) LG.email = v('#lg-e').trim().toLowerCase();
+    if ((m === 'criar' || m === 'nova') && v('#lg-s') !== v('#lg-s2')){ aviso('As senhas não são iguais.'); return; }
+    b.disabled = true; b.innerHTML = '<span class="spin" style="border-color:rgba(255,255,255,.4);border-top-color:#fff"></span>';
+    try {
+      if (m === 'entrar'){ LG.msg = ''; await API.entrarSenha(LG.email, v('#lg-s')); }
+      else if (m === 'criar'){ const r = await API.criarConta(v('#lg-n').trim(), LG.email, v('#lg-s')); LG.modo = 'entrar'; LG.msg = r.confirmar ? `Conta criada. Abra o e-mail que enviamos para ${LG.email} e clique no link de confirmação. Depois entre aqui com sua senha.` : 'Conta criada.'; render(); }
+      else if (m === 'esqueci'){ await API.esqueci(LG.email); LG.modo = 'entrar'; LG.msg = `Se existir conta para ${LG.email}, enviamos o link para criar uma senha nova.`; render(); }
+      else { await API.novaSenha(v('#lg-s')); LG.recup = false; LG.msg = ''; toast('Senha alterada.'); location.hash = ''; await iniciar(); }
+    } catch (err){ aviso(traduz(err.message || String(err))); }
+    finally { const bb = $('#lg-ok'); if (bb && bb.disabled){ bb.disabled = false; bb.textContent = txt; } } });
 }
 function telaEstado(tipo){
   const nome = (USER.user_metadata && (USER.user_metadata.full_name || USER.user_metadata.name)) || USER.email, foto = USER.user_metadata && USER.user_metadata.avatar_url;
@@ -1098,6 +1154,7 @@ async function recarregar(silencioso){ try { await API.carregar(); if (!silencio
 let canal = null, iniciando = false;
 async function iniciar(){ if (iniciando) return; iniciando = true; try { await iniciar2(); } finally { iniciando = false; } }
 async function iniciar2(){
+  if (LG.recup) return render();
   if (!(await API.sessao())) return render();
   ME = await API.meuCadastro() || {status:'pendente'};
   if (ME.status !== 'aprovado') return render();
@@ -1107,7 +1164,7 @@ async function iniciar2(){
 const largo = () => matchMedia('(min-width:960px)').matches;
 function render(){
   const r = $('#root');
-  if (!USER) r.innerHTML = telaLogin();
+  if (!USER || LG.recup){ r.innerHTML = telaLogin(); ligarLogin(); }
   else if (!ME || ME.status === 'pendente') r.innerHTML = telaEstado('pendente');
   else if (ME.status === 'bloqueado') r.innerHTML = telaEstado('bloqueado');
   else {
@@ -1127,8 +1184,9 @@ document.addEventListener('click', async e => {
   if (el.tagName === 'SELECT' || (el.tagName === 'INPUT' && el.type === 'checkbox')) return;
   try {
     switch (a){
+      case 'lg': LG.modo = id; LG.msg = ''; render(); { const i = $('#lg-e') || $('#lg-n'); if (i) i.focus(); } break;
       case 'entrar': { const b = $('#gbtn'); b.disabled = true; $('#gi').innerHTML = '<span class="spin"></span>'; $('#gtx').textContent = 'Redirecionando para o Google…';
-        try { await API.entrar(); } catch (err){ b.disabled = false; $('#gtx').textContent = 'Continuar com Google'; $('#gi').innerHTML = iconeG(); throw err; } break; }
+        try { await API.entrar(); } catch (err){ const b = $('#gbtn'); b.disabled = false; $('#gtx').textContent = 'Continuar com Google'; $('#gi').innerHTML = iconeG(); aviso(traduz(err.message || String(err))); } break; }
       case 'sair': fechar(); await API.sair(); break;
       case 'recarregar': location.reload(); break;
       case 'sb': if (largo()){ const m = document.body.classList.toggle('sb-mini'); LS.set('tripro-menu', m ? 'mini' : 'full'); } else document.body.classList.toggle('sb-open'); break;
@@ -1202,10 +1260,12 @@ document.addEventListener('keydown', e => {
 });
 if ('serviceWorker' in navigator && !DEMO && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
 
+{ const q = new URLSearchParams(location.search + '&' + location.hash.replace(/^#/, '')), er = q.get('error_description'); if (er){ LG.msg = traduz(er.replace(/\+/g, ' ')); history.replaceState(null, '', location.pathname); } }
 if (!DEMO){
   if (!window.supabase){ document.getElementById('root').innerHTML = '<div class="auth"><section class="a-r" style="grid-column:1/-1"><div class="a-box"><h2>Não foi possível carregar</h2><p class="s">Verifique a conexão com a internet e atualize a página.</p></div></section></div>'; }
   else { sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, {auth:{flowType:'pkce', detectSessionInUrl:true, persistSession:true}});
-    sb.auth.onAuthStateChange(ev => { if (ev === 'SIGNED_IN' && !ME) iniciar(); if (ev === 'SIGNED_OUT'){ USER = null; ME = null; render(); } });
+    fetch(CONFIG.SUPABASE_URL + '/auth/v1/settings', {headers:{apikey:CONFIG.SUPABASE_KEY}}).then(r => r.json()).then(j => { LG.google = !!(j.external && j.external.google); if (!USER) render(); }).catch(() => {});
+    sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY'){ LG.recup = true; LG.msg = ''; render(); return; } if (ev === 'SIGNED_IN' && !ME && !LG.recup) iniciar(); if (ev === 'SIGNED_OUT'){ USER = null; ME = null; render(); } });
     iniciar(); }
 } else { render(); }
 </script>
