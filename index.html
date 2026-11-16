@@ -1849,7 +1849,16 @@ const ehIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.
 const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(b, c => c.charCodeAt(0)); };
 async function estadoPush(){
   if (!PUSH.suporte || DEMO){ PUSH.ativo = DEMO ? !!PUSH.demo : false; return; }
-  try { const r = await navigator.serviceWorker.getRegistration(); const s = r && await r.pushManager.getSubscription(); PUSH.ativo = !!s && Notification.permission === 'granted'; } catch (e){ PUSH.ativo = false; }
+  try {
+    const r = await navigator.serviceWorker.getRegistration(), s = r && await r.pushManager.getSubscription();
+    PUSH.ativo = !!s && Notification.permission === 'granted';
+    if (PUSH.ativo){ /* garante que o servidor conhece este aparelho (se faltar, cadastra de novo) */
+      const j = s.toJSON(), q = await sb.from('push_inscricoes').select('id').eq('endpoint', j.endpoint).maybeSingle();
+      if (!q.data){ diag('auto-recadastro', new URL(j.endpoint).host + (q.error ? ' leitura:' + q.error.message : ''));
+        const w = await sb.from('push_inscricoes').upsert({endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth, aparelho:navigator.userAgent.slice(0, 180)}, {onConflict:'endpoint'});
+        if (w.error){ diag('auto-erro', w.error.message); PUSH.ativo = false; } else diag('auto-gravado'); }
+    } else diag('estado', `perm=${Notification.permission} sub=${!!s} reg=${!!r}`);
+  } catch (e){ diag('estado-erro', e && e.message); PUSH.ativo = false; }
 }
 const diag = (etapa, extra) => { if (DEMO) return; try { fetch(CONFIG.SUPABASE_URL + '/functions/v1/push', {method:'POST', headers:{'Content-Type':'application/json'}, keepalive:true, body:JSON.stringify({tipo:'diag', etapa, extra:String(extra ?? '').slice(0, 300), ua:navigator.userAgent.slice(0, 140), user:USER && USER.email})}).catch(() => {}); } catch (e){} };
 const comTempo = (p, ms, nome) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(nome + ' não respondeu')), ms))]);
