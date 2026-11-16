@@ -101,6 +101,28 @@ svg{flex:none}
 .lgi{height:50px;font-size:15.5px;border-radius:12px}
 .lgb{height:clamp(50px,3.1vw,56px);border-radius:12px;font-size:16px}
 @media (max-width:600px){.set{flex-wrap:wrap}.set>.seg{flex:1 1 100%}.set>.seg button{flex:1}}
+/* página do projeto visual */
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:var(--gap)}
+.hc{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.hc h4{font-size:12.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.hc p{font-size:13px;color:var(--muted);margin:0;line-height:1.5}.hc p b{color:var(--ink)}
+.hc .big{font-size:clamp(26px,2.4vw,34px);font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.1}.hc .big small{font-size:.5em;color:var(--muted);font-weight:600}
+.anel{position:relative;width:112px;height:112px;flex:none}.anel svg{width:100%;height:100%;display:block}
+.anel>div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.anel b{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1}.anel span{font-size:11px;color:var(--muted);margin-top:3px}
+.hc .anel{align-self:flex-start}
+.linha{position:relative;height:8px;border-radius:4px;background:var(--neu-bg);margin-top:4px}
+.linha i{position:absolute;top:0;bottom:0;border-radius:4px}.linha i.pv{left:0;background:var(--plan)}.linha i.pr{background:var(--proj)}.linha i.pr.late{background:var(--crit)}
+.linha b{position:absolute;top:-4px;width:3px;height:16px;border-radius:2px;background:var(--ink);transform:translateX(-50%)}
+.linha-l{display:flex;justify-content:space-between;font-size:11.5px}
+.stk{display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px;background:var(--neu-bg)}.stk i{display:block}
+.lgd2{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}.lgd2 i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}.lgd2 b{color:var(--ink)}.lgd2>span{white-space:nowrap}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:10px}
+.mc{display:flex;align-items:center;gap:12px;text-align:left;background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;cursor:pointer;font:inherit;color:inherit;min-width:0}
+.mc:hover{border-color:var(--line2);background:var(--hover)}.mc.on{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+.mc .anel{width:58px;height:58px}.mc .anel b{font-size:13.5px}.mc .anel span{display:none}
+.mc>div{min-width:0}.mc b{display:block;color:var(--ink);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:600px){.hero{grid-template-columns:1fr 1fr;gap:10px}.hc{padding:12px;gap:8px}.hc h4{font-size:11px}.hc p{font-size:12px}.hc .anel{width:84px;height:84px}.anel b{font-size:18px}.anel span{font-size:10px}.hc .big{font-size:22px}}
 .lnk{color:var(--blue);font-weight:600;font-size:14px;padding:0}.lnk:hover{text-decoration:underline}
 .lgalt{margin-top:18px;text-align:center;font-size:14.5px;color:var(--muted)}
 .ou{display:flex;align-items:center;gap:12px;color:var(--faint);font-size:13px;margin:20px 0 0}.ou::before,.ou::after{content:"";flex:1;border-top:1px solid var(--line)}
@@ -1014,7 +1036,8 @@ function telaHoje(){
   const [seg, dom] = semanaAtual(h), semana = ts.filter(x => x.fim_previsto >= seg && x.fim_previsto <= dom), atras = ts.filter(x => status(x, h)[2] === 'late'), conc = ts.filter(x => atual(x.id) >= 100 || x.estado === 'concluida').length;
   const selEst = x => `<select class="sel" data-a="mover" data-id="${esc(x.id)}" aria-label="Estado" style="height:30px;font-size:12.5px;padding:0 8px">${ESTADOS.map(([k, l]) => `<option value="${k}" ${x.estado === k ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
   return casca(`${cabeca(`${hr < 12 ? 'Bom dia' : hr < 18 ? 'Boa tarde' : 'Boa noite'}, ${esc(nome)}`, `${new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'})} · ${escopo()}`, `<button class="btn" data-a="cmd-ia">${isvg('spark')}Perguntar à IA</button>`)}
-    <div class="g-main"><div class="col">${cardResumo()}${cardInsights()}</div>
+    ${cardResumo()}
+    <div class="g-main"><div class="col">${cardInsights()}</div>
       <div class="col">
         <section class="card"><div class="card-h"><span class="hic">${isvg('user')}</span><h2>Minhas tarefas</h2><span class="sp"></span><span class="sub">${minhas.length}</span></div><div class="card-b list" style="padding-top:2px;padding-bottom:2px">${minhas.slice(0, 7).map(x => li(x, h, selEst(x))).join('') || `<p class="empty">Nenhuma tarefa aberta com você como responsável${UI.pj === 'all' ? '' : ' neste projeto'}.</p>`}</div></section>
         <section class="card"><div class="card-h"><span class="hic">${isvg('cal')}</span><h2>Hoje na agenda</h2><span class="sp"></span><a class="sub" href="#/agenda">Abrir agenda</a></div>${LS.get('tripro-agenda-ok') ? '' : `<div class="card-b" style="padding-bottom:0"><button class="btn btn-sm" data-a="agenda-sync" style="width:100%">${isvg('link')}Ver esta agenda no seu Google ou Outlook</button></div>`}<div class="card-b" style="padding-top:2px;padding-bottom:2px">${evs.map(e => `<div class="ag-it" data-a="ev-ver" data-id="${e.id}" style="--c:${e.autor_id === USER.id || (e.participantes || []).includes(USER.id) ? '#2453AB' : '#6B4FD8'}"><div class="ag-d"><b style="font-size:13.5px">${e.dia_inteiro ? isvg('cal', 15) : hora(e.inicio)}</b><span>${e.dia_inteiro ? 'dia' : 'hoje'}</span></div><div><b class="t">${esc(e.titulo)}</b><span class="sub">${e.dia_inteiro ? 'Dia inteiro' : hora(e.inicio) + ' a ' + hora(e.fim)}${e.local ? ' · ' + esc(e.local) : ''}</span></div></div>`).join('')}${venceHoje.map(x => `<div class="ag-it" data-a="ver" data-id="${esc(x.id)}" style="--c:#D9902B"><div class="ag-d"><b>${isvg('clock', 15)}</b><span>prazo</span></div><div><b class="t">${esc(x.entrega)}</b><span class="sub">Vence hoje · ${esc(x.responsavel)}</span></div></div>`).join('') || (evs.length ? '' : '<p class="empty">Nada marcado para hoje.</p>')}</div></section>
@@ -1042,30 +1065,44 @@ function telaProjetos(){
     <div class="pgrid">${D.projetos.filter(p => p.status !== 'concluido').map(cardProjeto).join('')}</div>
     <section class="card"><div class="card-h"><h2>Lista de projetos</h2><span class="sp"></span><label class="search">${ICO.search}<input class="sel" data-f="pq2" placeholder="Buscar projeto" value="${esc(UI.pq2 || '')}" aria-label="Buscar projeto"></label></div><div class="tbl-w"><table><thead><tr><th>Projeto</th><th>Situação</th><th>Realizado</th><th class="hide-m">Planejado</th><th class="hide-m">Término previsto</th><th>Tarefas</th><th>Atrasadas</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="empty">Nenhum projeto encontrado.</td></tr>'}</tbody></table></div></section>`);
 }
+const anel = (v, cor, txt, sub, marca) => { const r = 42, c = 2 * Math.PI * r, f = clamp(v, 0, 100) / 100, mk = marca != null ? clamp(marca, 0, 100) / 100 * 2 * Math.PI - Math.PI / 2 : null;
+  return `<div class="anel"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="${r}" fill="none" stroke="var(--neu-bg)" stroke-width="9"/><circle cx="50" cy="50" r="${r}" fill="none" stroke="${cor}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)"/>${mk !== null ? `<line x1="${50 + 33 * Math.cos(mk)}" y1="${50 + 33 * Math.sin(mk)}" x2="${50 + 51 * Math.cos(mk)}" y2="${50 + 51 * Math.sin(mk)}" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/>` : ''}</svg><div><b class="tn" style="color:${cor}">${txt}</b>${sub ? `<span>${sub}</span>` : ''}</div></div>`; };
+function heroProjeto(P, ts, A){
+  const h = hoje(), dif = A.R - A.P, atrasoDias = A.prev ? diasEntre(A.fim, A.prev) : null;
+  const cont = {ok:0, run:0, late:0, plan:0}; ts.forEach(x => { const s = status(x, h)[2]; cont[s === 'rev' ? 'run' : s] = (cont[s === 'rev' ? 'run' : s] || 0) + 1; });
+  const m = typeof monteCarlo === 'function' ? monteCarlo(ts, P.id) : null;
+  const corR = dif >= -2 ? 'var(--ok)' : dif >= -8 ? 'var(--warn)' : 'var(--crit)';
+  const c1 = `<div class="hc"><h4>Avanço</h4>${anel(A.R, corR, pct(A.R, 0), 'realizado', A.P)}<p><span class="pill ${dif >= -2 ? 'p-ok' : dif >= -8 ? 'p-warn' : 'p-crit'}">${dif >= 0 ? '+' : ''}${dif.toLocaleString('pt-BR', {maximumFractionDigits:1})} p.p.</span> planejado ${pct(A.P, 0)} <span class="sub">(traço)</span></p></div>`;
+  const c2 = m && !m.feito && !m.semDados ? `<div class="hc"><h4>Chance de cumprir o prazo</h4>${anel(m.chance, corChance(m.chance), Math.round(m.chance) + '%', 'até ' + br(m.plano))}<p>Mais provável <b class="tn">${m.p50 ? brc(m.p50) : '–'}</b> · com folga <b class="tn">${m.p85 ? brc(m.p85) : '–'}</b></p></div>`
+    : `<div class="hc"><h4>Chance de cumprir o prazo</h4>${anel(m && m.feito ? 100 : 0, 'var(--ok)', m && m.feito ? '✓' : '–', m && m.feito ? 'entregue' : 'aguardando')}<p class="sub">${m && m.feito ? 'Projeto entregue.' : 'Aparece com 2 semanas de avanço lançado.'}</p></div>`;
+  const ini0 = T(A.ini), fimT = Math.max(T(A.fim), A.prev ? T(A.prev) : 0, T(h)), pos = d => clamp((T(d) - ini0) / (fimT - ini0 || 1) * 100, 0, 100);
+  const c3 = `<div class="hc"><h4>Término previsto</h4><div class="big tn" style="color:${atrasoDias !== null && atrasoDias > 3 ? 'var(--crit)' : 'var(--ink)'}">${A.prev ? brc(A.prev) : '–'}</div><p>${A.prev ? (atrasoDias > 0 ? `${atrasoDias} dias após o plano (${brc(A.fim)})` : atrasoDias < 0 ? `${-atrasoDias} dias antes do plano (${brc(A.fim)})` : 'no dia planejado') : 'sem avanço nas últimas 4 semanas'}</p>
+    <div class="linha"><i class="pv" style="width:${pos(A.fim)}%"></i>${A.prev ? `<i class="pr ${A.prev > A.fim ? 'late' : ''}" style="left:${pos(A.fim)}%;width:${Math.max(0, pos(A.prev) - pos(A.fim))}%"></i>` : ''}<b style="left:${pos(h)}%" title="Hoje"></b></div><div class="linha-l sub"><span>${br(A.ini)}</span><span>hoje</span><span>${br(A.prev && A.prev > A.fim ? A.prev : A.fim)}</span></div></div>`;
+  const seg = [['ok','Entregues','var(--ok)'],['run','Em andamento','var(--blue)'],['late','Atrasadas','var(--crit)'],['plan','Planejadas','var(--plan)']];
+  const c4 = `<div class="hc"><h4>Entregas</h4><div class="big tn">${cont.ok}<small> / ${ts.length}</small></div><div class="stk">${seg.map(([k, , c]) => cont[k] ? `<i style="flex:${cont[k]};background:${c}" title="${cont[k]}"></i>` : '').join('')}</div><div class="lgd2">${seg.map(([k, l, c]) => `<span><i style="background:${c}"></i>${l} <b class="tn">${cont[k] || 0}</b></span>`).join('')}</div></div>`;
+  return `<div class="hero">${c1}${c2}${c3}${c4}</div>`;
+}
 function telaProjeto(pid){
   const P = projeto(pid); if (!P){ setPj('all'); return telaProjetos(); }
   const h = hoje(), base = D.tarefas.filter(x => x.projeto_id === pid), ts = base.filter(x => (UI.mod === 'all' || x.modulo === UI.mod) && (UI.resp === 'all' || x.responsavel === UI.resp));
   const A = analise(ts), mods = [...new Set(base.map(x => x.modulo))], resps = [...new Set(base.map(x => x.responsavel))];
-  const acoes = `${admin() ? `<button class="btn" data-a="projeto-editar" data-id="${esc(pid)}">Editar projeto</button>` : ''}<button class="btn btn-g" data-a="pj" data-id="all">${isvg('left')}Todos os projetos</button>`;
+  const acoes = `${admin() ? `<button class="btn" data-a="link-cliente" data-id="${esc(pid)}">${isvg('share')}<span class="hide-m">Compartilhar com cliente</span></button><button class="btn" data-a="projeto-editar" data-id="${esc(pid)}">Editar</button>` : ''}<button class="btn btn-g" data-a="pj" data-id="all">${isvg('left')}<span class="hide-m">Todos os projetos</span></button>`;
   const cab = cabeca(`<span class="row" style="gap:12px"><span class="dotp lg" style="background:${corP(P.id)}">${esc(ini(P.nome))}</span>${esc(P.nome)}</span>`, esc(P.descricao || ''), acoes);
   if (!base.length) return casca(`${cab}<div class="card card-b"><p class="empty">Nenhuma tarefa neste projeto ainda.</p><div class="row" style="justify-content:center"><button class="btn btn-p" data-a="tarefa-nova">Cadastrar a primeira</button></div></div>`);
   const filtros = `<div class="filters"><select class="sel" data-f="mod" aria-label="Módulo"><option value="all">Todos os módulos</option>${mods.map(m => `<option ${UI.mod === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>
     <select class="sel" data-f="resp" aria-label="Responsável"><option value="all">Todos os responsáveis</option>${resps.map(m => `<option ${UI.resp === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></div>`;
-  if (!A) return casca(`${cab}${filtros}<div class="card card-b empty">Nada com esses filtros.</div>`);
-  const atras = ts.filter(x => status(x, h)[2] === 'late'), conc = ts.filter(x => atual(x.id) >= 100).length, dif = A.R - A.P, atrasoDias = A.prev ? diasEntre(A.fim, A.prev) : null;
-  const modBars = mods.map(m => { const xs = base.filter(x => x.modulo === m), tot = xs.reduce((s, x) => s + x.peso, 0), r = xs.reduce((s, x) => s + x.peso * atual(x.id) / 100, 0) / tot * 100; return `<div class="mod"><b>${esc(m)}<span>${pct(r, 0)}</span></b><div class="bar"><i class="${r >= 99.9 ? 'ok' : ''}" style="width:${r}%"></i></div></div>`; }).join('');
+  if (!A) return casca(`${cab}${cardResumo()}${filtros}<div class="card card-b empty">Nada com esses filtros.</div>`);
+  const modCards = mods.map(m => { const xs = base.filter(x => x.modulo === m), tot = xs.reduce((s, x) => s + x.peso, 0) || 1, r = xs.reduce((s, x) => s + x.peso * atual(x.id) / 100, 0) / tot * 100, late = xs.filter(x => status(x, h)[2] === 'late').length, ok = xs.filter(x => atual(x.id) >= 100).length;
+    return `<button class="mc${UI.mod === m ? ' on' : ''}" data-a="mod-f" data-id="${esc(m)}">${anel(r, r >= 99.9 ? 'var(--ok)' : late ? 'var(--crit)' : 'var(--blue)', pct(r, 0), '')}<div><b>${esc(m)}</b><span class="sub">${ok}/${xs.length} entregues${late ? ` · <span style="color:var(--crit)">${late} atrasada${late > 1 ? 's' : ''}</span>` : ''}</span></div></button>`; }).join('');
+  const lado = (typeof cardCusto === 'function' ? cardCusto(ts) : '') + cardInsights();
   return casca(`${cab}
-  <div class="kpis">
-    <div class="kpi"><span>Planejado até hoje</span><b class="tn">${pct(A.P)}</b><small>pelo cronograma</small></div>
-    <div class="kpi ${dif >= -2 ? 'good' : 'bad'}"><span>Realizado</span><b class="tn">${pct(A.R)}</b><small>${dif >= 0 ? '+' : ''}${dif.toLocaleString('pt-BR', {maximumFractionDigits:1})} p.p. do plano</small></div>
-    <div class="kpi ${A.idp >= .95 ? 'good' : 'bad'}"><span>Índice de prazo</span><b class="tn">${isFinite(A.idp) ? A.idp.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) : '–'}</b><small>1,00 = no prazo</small></div>
-    <div class="kpi ${atrasoDias !== null && atrasoDias > 3 ? 'bad' : 'good'}"><span>Término previsto</span><b class="tn">${A.prev ? brc(A.prev) : '–'}</b><small>${A.prev ? (atrasoDias > 0 ? `${atrasoDias} dias após o plano` : atrasoDias < 0 ? `${-atrasoDias} dias antes do plano` : 'no dia planejado') : 'sem avanço em 4 semanas'}</small></div>
-    <div class="kpi"><span>Entregues</span><b class="tn">${conc}<span style="font-size:.6em;color:var(--muted);font-weight:600"> / ${ts.length}</span></b><small>${atras.length} atrasada${atras.length === 1 ? '' : 's'}</small></div></div>
+  ${cardResumo()}
+  ${heroProjeto(P, ts, A)}
   <div class="g-main"><div class="col"><section class="card"><div class="card-h"><span class="hic">${isvg('chart')}</span><h2>Curva S</h2><span class="sp"></span><div class="legend"><span><i class="ln" style="background:var(--plan)"></i>Planejado</span><span><i class="ln" style="background:var(--real)"></i>Realizado</span><span><i class="ln" style="background:var(--proj)"></i>Projeção</span></div></div><div class="card-b">${filtros}<div style="margin-top:12px">${curvaS(A)}</div></div></section>
-    <section class="card"><div class="card-h"><h2>Avanço por módulo</h2></div><div class="card-b mods">${modBars}</div></section></div>
-    <div class="col">${cardResumo()}${cardInsights()}</div></div>
+    <section class="card"><div class="card-h"><span class="hic">${isvg('board')}</span><h2>Avanço por módulo</h2><span class="sp"></span>${UI.mod !== 'all' ? `<button class="btn btn-sm btn-g" data-a="mod-f" data-id="all">Ver todos</button>` : '<span class="sub">toque para filtrar</span>'}</div><div class="card-b mgrid">${modCards}</div></section></div>
+    <div class="col">${lado}</div></div>
   ${tabelaEntregas(ts)}
-  <p class="sub">O realizado de cada tarefa é o último percentual lançado (ou o das subtarefas). A curva soma as tarefas pelo peso; a projeção usa o ritmo das últimas 4 semanas.</p>`);
+  <p class="sub">O realizado de cada tarefa é o último percentual lançado (ou o das subtarefas). A curva soma as tarefas pelo peso; a projeção usa o ritmo das últimas 4 semanas e a chance de cumprir o prazo simula 2.000 cenários com o ritmo real de cada semana.</p>`);
 }
 function tabelaEntregas(base){
   const h = hoje(), ncom = id => D.comentarios.filter(c => c.tarefa_id === id).length;
@@ -1516,11 +1553,6 @@ ROTAS.push('previsoes', 'decisoes');
     if (['previsoes','decisoes'].includes(R.r)) h = h.replace(/<div class="ng( ab)?"><button class="nl nh" data-a="grp" data-id="acomp"/, '<div class="ng ab tem"><button class="nl nh" data-a="grp" data-id="acomp"');
     return h; };
 }
-{ const tp = telaProjeto;
-  telaProjeto = function(pid){ let h = tp(pid); const P = projeto(pid); if (!P) return h; const ts = D.tarefas.filter(x => x.projeto_id === pid);
-    if (admin()) h = h.replace('<button class="btn" data-a="projeto-editar"', `<button class="btn" data-a="link-cliente" data-id="${esc(pid)}">${isvg('share')}Compartilhar com cliente</button><button class="btn" data-a="projeto-editar"`);
-    return h.replace('<div class="col">' + cardResumo(), '<div class="col">' + cardPrevisao(P, ts, true) + cardCusto(ts) + cardResumo()); };
-}
 { const tq = telaQuadro;
   telaQuadro = function(){ let h = tq(); const nc = {}; D.commits.forEach(c => nc[c.tarefa_id] = (nc[c.tarefa_id] || 0) + 1);
     return h.replace(/<article class="kc" draggable="true" data-a="ver" data-id="([^"]+)"><div class="kc-t">/g, (m, id) => { const x = D.tarefas.find(k => k.id === id.replace(/&amp;/g, '&')); if (!x) return m; const nd = depsDe(x).filter(d => !feita(d)).length;
@@ -1673,6 +1705,7 @@ document.addEventListener('click', async e => {
         el.disabled = true; let s = SA.alvo;
         if (s.nova){ const {nova, ...n} = s; s = await API.criarSprint({...n, objetivo:null}); }
         await API.setTarefas(ids, {sprint_id:+s.id}); fechar(); toast(`${ids.length} tarefa(s) na ${s.nome}.`); UI.qs = null; await recarregar(); break; }
+      case 'mod-f': UI.mod = id; render(); break;
       case 'link-cliente': modalLinkCliente(id); break;
       case 'link-gerar': await API.criarLink(id); await recarregar(true); modalLinkCliente(id); toast('Link criado. Copie e envie para o cliente.'); break;
       case 'link-revogar': { const l = LINKS.find(k => k.token === id); await API.revogarLink(id); await recarregar(true); if (l) modalLinkCliente(l.projeto_id); toast('Link desativado.'); break; }
