@@ -41,13 +41,13 @@ h1,h2,h3{color:var(--ink);letter-spacing:-.01em}
 
 /* ---------- marca ---------- */
 .lockup{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
-.lockup svg{flex:none}
+.lockup .lg{flex:none;display:grid;place-items:center;background:#fff;border-radius:28%;box-shadow:0 6px 18px rgba(5,14,40,.28),0 0 0 1px rgba(139,196,255,.25)}
 
 /* ---------- login ---------- */
 .auth{display:grid;grid-template-columns:minmax(0,54fr) minmax(0,46fr);min-height:100vh;min-height:100dvh;background:#fff}
 .a-l{background:radial-gradient(900px 600px at 0% 0%,rgba(139,196,255,.10),transparent 60%),var(--navy);color:#fff;padding:clamp(32px,5vw,76px) clamp(28px,5vw,96px) clamp(28px,4vw,56px);display:flex;flex-direction:column}
 .a-l .lockup{font-size:clamp(22px,1.7vw,30px)}
-.a-l .lockup svg{width:clamp(44px,3vw,58px);height:auto}
+
 .a-copy{margin:auto 0;padding:48px 0 40px}
 .a-copy h1{color:#fff;font-size:clamp(34px,3.3vw,61px);line-height:1.15;letter-spacing:-.025em;font-weight:700}
 .a-copy p{font-size:clamp(16px,1.2vw,22px);line-height:1.6;color:#C2D3F2;margin-top:22px;max-width:34ch}
@@ -312,7 +312,7 @@ const LS = {get(k){ try { return localStorage.getItem(k); } catch (e){ return nu
 
 /* ---------- marca e ícones ---------- */
 const LOGO = (s = 36) => `<img class="logo" src="${CONFIG.LOGO}" width="${s}" height="${s}" alt="">`;
-const MARCA = s => `<span class="lockup">${LOGO(s)}<span>TRIPRO</span></span>`;
+const MARCA = s => `<span class="lockup"><span class="lg" style="width:${s}px;height:${s}px">${LOGO(Math.round(s * .74))}</span><span>TRIPRO</span></span>`;
 const ic = p => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
 const ICO = {
   home: ic('<path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>'),
