@@ -663,7 +663,7 @@ const API = {
   async delAnexo(a){ if (DEMO){ D.anexos = D.anexos.filter(k => k.id !== a.id); return; } await sb.storage.from('anexos').remove([a.caminho]); ok(await sb.from('anexos').delete().eq('id', a.id)); },
   async saveEvento(x, id){ if (DEMO){ if (id) Object.assign(D.eventos.find(k => k.id == id), x); else D.eventos.push({...x, id:Date.now(), autor:USER.email, autor_id:USER.id}); return; } ok(id ? await sb.from('eventos').update(x).eq('id', id) : await sb.from('eventos').insert(x)); },
   async delEvento(id){ if (DEMO){ D.eventos = D.eventos.filter(k => k.id != id); return; } ok(await sb.from('eventos').delete().eq('id', id)); },
-  async linkAgenda(novo){ if (DEMO) return CONFIG.SUPABASE_URL + '/functions/v1/agenda?t=00000000-demo-link-0000-000000000000'; const t = ok(await sb.rpc('meu_link_agenda', {novo:!!novo})); return CONFIG.SUPABASE_URL + '/functions/v1/agenda?t=' + t; },
+  async linkAgenda(novo){ if (DEMO) return CONFIG.SUPABASE_URL + '/functions/v1/agenda/00000000-demo-link-0000-000000000000.ics'; const t = ok(await sb.rpc('meu_link_agenda', {novo:!!novo})); return CONFIG.SUPABASE_URL + '/functions/v1/agenda/' + t + '.ics'; },
   async gerarResumo(){ if (DEMO){ await new Promise(r => setTimeout(r, 600)); RESUMOS.forEach(r => r.criado_em = new Date().toISOString()); return; } const r = await sb.functions.invoke('notificar', {body:{tipo:'resumo_ia'}}); if (r.error) throw r.error; },
   async perguntar(q, pid){
     if (DEMO){ await new Promise(r => setTimeout(r, 700)); return respostaLocal(q); }
@@ -990,7 +990,7 @@ function telaHoje(){
     <div class="g-main"><div class="col">${cardResumo()}${cardInsights()}</div>
       <div class="col">
         <section class="card"><div class="card-h"><span class="hic">${isvg('user')}</span><h2>Minhas tarefas</h2><span class="sp"></span><span class="sub">${minhas.length}</span></div><div class="card-b list" style="padding-top:2px;padding-bottom:2px">${minhas.slice(0, 7).map(x => li(x, h, selEst(x))).join('') || `<p class="empty">Nenhuma tarefa aberta com você como responsável${UI.pj === 'all' ? '' : ' neste projeto'}.</p>`}</div></section>
-        <section class="card"><div class="card-h"><span class="hic">${isvg('cal')}</span><h2>Hoje na agenda</h2><span class="sp"></span><a class="sub" href="#/agenda">Abrir agenda</a></div><div class="card-b" style="padding-top:2px;padding-bottom:2px">${evs.map(e => `<div class="ag-it" data-a="ev-ver" data-id="${e.id}" style="--c:${e.autor_id === USER.id || (e.participantes || []).includes(USER.id) ? '#2453AB' : '#6B4FD8'}"><div class="ag-d"><b style="font-size:13.5px">${e.dia_inteiro ? isvg('cal', 15) : hora(e.inicio)}</b><span>${e.dia_inteiro ? 'dia' : 'hoje'}</span></div><div><b class="t">${esc(e.titulo)}</b><span class="sub">${e.dia_inteiro ? 'Dia inteiro' : hora(e.inicio) + ' a ' + hora(e.fim)}${e.local ? ' · ' + esc(e.local) : ''}</span></div></div>`).join('')}${venceHoje.map(x => `<div class="ag-it" data-a="ver" data-id="${esc(x.id)}" style="--c:#D9902B"><div class="ag-d"><b>${isvg('clock', 15)}</b><span>prazo</span></div><div><b class="t">${esc(x.entrega)}</b><span class="sub">Vence hoje · ${esc(x.responsavel)}</span></div></div>`).join('') || (evs.length ? '' : '<p class="empty">Nada marcado para hoje.</p>')}</div></section>
+        <section class="card"><div class="card-h"><span class="hic">${isvg('cal')}</span><h2>Hoje na agenda</h2><span class="sp"></span><a class="sub" href="#/agenda">Abrir agenda</a></div>${LS.get('tripro-agenda-ok') ? '' : `<div class="card-b" style="padding-bottom:0"><button class="btn btn-sm" data-a="agenda-sync" style="width:100%">${isvg('link')}Ver esta agenda no seu Google ou Outlook</button></div>`}<div class="card-b" style="padding-top:2px;padding-bottom:2px">${evs.map(e => `<div class="ag-it" data-a="ev-ver" data-id="${e.id}" style="--c:${e.autor_id === USER.id || (e.participantes || []).includes(USER.id) ? '#2453AB' : '#6B4FD8'}"><div class="ag-d"><b style="font-size:13.5px">${e.dia_inteiro ? isvg('cal', 15) : hora(e.inicio)}</b><span>${e.dia_inteiro ? 'dia' : 'hoje'}</span></div><div><b class="t">${esc(e.titulo)}</b><span class="sub">${e.dia_inteiro ? 'Dia inteiro' : hora(e.inicio) + ' a ' + hora(e.fim)}${e.local ? ' · ' + esc(e.local) : ''}</span></div></div>`).join('')}${venceHoje.map(x => `<div class="ag-it" data-a="ver" data-id="${esc(x.id)}" style="--c:#D9902B"><div class="ag-d"><b>${isvg('clock', 15)}</b><span>prazo</span></div><div><b class="t">${esc(x.entrega)}</b><span class="sub">Vence hoje · ${esc(x.responsavel)}</span></div></div>`).join('') || (evs.length ? '' : '<p class="empty">Nada marcado para hoje.</p>')}</div></section>
         ${cardSprint()}
       </div></div>
     ${UI.pj === 'all' ? `<div class="ph"><div><h1 style="font-size:18px">Projetos</h1></div><span class="sp"></span><a class="sub" href="#/projetos">Ver todos</a></div><div class="pgrid">${D.projetos.filter(p => p.status !== 'concluido').map(cardProjeto).join('') || '<div class="card card-b empty">Nenhum projeto ainda.</div>'}</div>` : ''}`);
@@ -1477,21 +1477,31 @@ function modalEvento(id, dia){
     const n = {titulo:$('#e-t').value.trim(), dia_inteiro:di2, inicio:ini1.toISOString(), fim:fim1.toISOString(), local:$('#e-l').value.trim() || null, descricao:$('#e-o').value.trim() || null, projeto_id:$('#e-p').value || null, participantes:EVP};
     try { await API.saveEvento(n, id); fechar(); toast(EVP.length ? `Evento salvo. ${EVP.length} participante${EVP.length > 1 ? 's' : ''} notificado${EVP.length > 1 ? 's' : ''}.` : 'Evento salvo.'); UI.mes = d.slice(0, 7); await recarregar(); } catch (err){ toast('Não foi possível salvar: ' + err.message, true); } });
 }
+const AGENDAS = url => { const web = url.replace(/^https?:/, 'webcal:'), enc = encodeURIComponent(url);
+  return {google:['Google Agenda', 'cal', 'https://calendar.google.com/calendar/render?cid=' + encodeURIComponent(web)],
+    empresa:['Outlook da empresa', 'mail', 'https://outlook.office.com/calendar/0/addfromweb?url=' + enc + '&name=TRIPRO'],
+    pessoal:['Outlook pessoal (Hotmail)', 'mail', 'https://outlook.live.com/calendar/0/addfromweb?url=' + enc + '&name=TRIPRO'],
+    apple:['iPhone, iPad ou Mac', 'cal', web]}; };
+function agendaSugerida(){
+  const em = norm((USER && USER.email) || ''), dom = em.split('@')[1] || '', prov = USER && USER.app_metadata && USER.app_metadata.provider;
+  if (/^(gmail|googlemail)\.com$/.test(dom)) return 'google';
+  if (/^(hotmail|outlook|live|msn)\.com(\.br)?$/.test(dom)) return 'pessoal';
+  if (/iphone|ipad|macintosh/i.test(navigator.userAgent) && /icloud|me\.com|mac\.com/.test(dom)) return 'apple';
+  return prov === 'google' ? 'google' : 'empresa';
+}
 async function modalSync(novo){
   abrir(`${cab('Ver o TRIPRO na sua agenda')}<div class="mb"><div class="row"><span class="spin"></span><span class="sub">Preparando…</span></div></div>`);
   let url; try { url = await API.linkAgenda(novo); } catch (err){ fechar(); toast('Não foi possível preparar: ' + err.message, true); return; }
   if (!$('#dlg')) return;
-  const web = url.replace(/^https?:/, 'webcal:'), enc = encodeURIComponent(url);
-  const op = (href, ico, t, s) => `<a class="cmd-o" style="border:1px solid var(--line);border-radius:12px;padding:12px 14px" href="${esc(href)}" target="_blank" rel="noopener" data-a="sync-ok"><span class="ico">${isvg(ico)}</span><div><b>${t}</b><span>${s}</span></div>${isvg('arrow')}</a>`;
-  $('#dlg').innerHTML = `${cab('Ver o TRIPRO na sua agenda')}<div class="mb" style="gap:10px">
-    <p>Escolha a sua agenda. Vai abrir uma tela pedindo para <b>adicionar a agenda TRIPRO</b>: é só confirmar. Pronto, reuniões, prazos e sprints aparecem lá e se atualizam sozinhos.</p>
-    ${op('https://calendar.google.com/calendar/render?cid=' + encodeURIComponent(web), 'cal', 'Google Agenda', 'Gmail ou Google Workspace')}
-    ${op('https://outlook.office.com/calendar/0/addfromweb?url=' + enc + '&name=TRIPRO', 'mail', 'Outlook da empresa', 'Microsoft 365, conta de trabalho ou escola')}
-    ${op('https://outlook.live.com/calendar/0/addfromweb?url=' + enc + '&name=TRIPRO', 'mail', 'Outlook pessoal', 'Hotmail, Outlook.com ou Live')}
-    ${op(web, 'cal', 'iPhone, iPad ou Mac', 'Abre o app Calendário do aparelho')}
-    <details style="margin-top:4px"><summary class="sub" style="cursor:pointer;font-weight:600;color:var(--blue)">Outra agenda? Copiar o link</summary><div class="copy" style="margin-top:8px"><input class="inp" id="ics-url" readonly value="${esc(url)}" aria-label="Link da agenda"><button class="btn" data-a="copiar">Copiar</button></div><p class="sub" style="margin-top:6px">Cole o link na opção "adicionar agenda pela internet" (ou "por URL") da sua agenda.</p></details>
-    <p class="sub">Funciona de um lado só: o que muda no TRIPRO aparece na sua agenda. O Google pode levar algumas horas para mostrar mudanças novas. O link é pessoal, não compartilhe.</p></div>
-    <div class="mf"><button class="btn btn-g" data-a="agenda-novo-link" title="Use se o link vazou: o antigo para de funcionar">Trocar meu link</button><span class="sp"></span><button class="btn btn-p" data-a="fechar">Fechar</button></div>`;
+  const A = AGENDAS(url), k = agendaSugerida(), [nome, , href] = A[k];
+  const op = key => { const [t, ico, h] = A[key]; return `<a class="cmd-o" style="border:1px solid var(--line);border-radius:12px;padding:10px 12px" href="${esc(h)}" target="_blank" rel="noopener" data-a="sync-ok">${`<span class="ico">${isvg(ico)}</span>`}<div><b>${t}</b></div>${isvg('arrow')}</a>`; };
+  $('#dlg').innerHTML = `${cab('Ver o TRIPRO na sua agenda')}<div class="mb" style="gap:14px">
+    <p>Um clique: abre a sua agenda e você só confirma <b>Adicionar</b>. Depois disso, reuniões, prazos e sprints do TRIPRO aparecem lá sozinhos.</p>
+    <a class="btn btn-p" style="height:52px;font-size:15px" href="${esc(href)}" target="_blank" rel="noopener" data-a="sync-ok">${isvg('cal', 18)}Adicionar ao ${esc(nome)}</a>
+    <p class="sub" style="text-align:center;margin-top:-6px">Escolhido pelo seu e-mail (${esc(USER.email)}).</p>
+    <details><summary class="sub" style="cursor:pointer;font-weight:600;color:var(--blue)">Usa outra agenda?</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">${Object.keys(A).filter(x => x !== k).map(op).join('')}
+      <div class="copy"><input class="inp" id="ics-url" readonly value="${esc(url)}" aria-label="Link da agenda"><button class="btn" data-a="copiar">Copiar link</button></div></div></details></div>
+    <div class="mf"><button class="btn btn-g btn-sm" data-a="agenda-novo-link" title="Use se o link vazou: o antigo para de funcionar">Trocar meu link</button><span class="sp"></span><button class="btn" data-a="fechar">Fechar</button></div>`;
 }
 function modalConvite(){
   abrir(`${cab('Convidar pessoa')}<form id="fcv" style="display:contents"><div class="mb">
@@ -1727,7 +1737,7 @@ document.addEventListener('click', async e => {
       case 'ev-excluir': if (el.dataset.ok){ await API.delEvento(id); fechar(); toast('Evento excluído.'); await recarregar(); } else { el.dataset.ok = '1'; el.textContent = 'Confirmar exclusão'; } break;
       case 'ev-ics': baixarIcs(D.eventos.find(k => k.id == id)); break;
       case 'agenda-sync': modalSync(false); break;
-      case 'sync-ok': setTimeout(() => toast('Confirme na tela que abriu. A agenda TRIPRO aparece em alguns minutos.'), 300); break;
+      case 'sync-ok': LS.set('tripro-agenda-ok', '1'); setTimeout(() => toast('Na tela que abriu, confirme Adicionar. A agenda TRIPRO aparece em alguns minutos.'), 300); break;
       case 'agenda-novo-link': if (el.dataset.ok){ modalSync(true); } else { el.dataset.ok = '1'; el.textContent = 'O link antigo para de funcionar. Confirmar?'; } break;
       case 'copiar': { const i = $('#ics-url'); i.select(); try { await navigator.clipboard.writeText(i.value); } catch (x){ document.execCommand('copy'); } el.textContent = 'Copiado'; break; }
       case 'pref': { const on = el.getAttribute('aria-checked') !== 'true'; el.setAttribute('aria-checked', String(on));

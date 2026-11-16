@@ -1,5 +1,5 @@
 // TRIPRO · calendário iCal para assinar no Google Agenda ou no Outlook.
-// URL: https://<projeto>.supabase.co/functions/v1/agenda?t=<token pessoal>
+// URL: https://<projeto>.supabase.co/functions/v1/agenda/<token pessoal>.ics  (também aceita ?t=<token>)
 // O token é secreto e pessoal (Configurações > Agenda). Sem token válido, responde 404.
 const URL_SB = Deno.env.get("SUPABASE_URL")!;
 const CHAVE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -11,7 +11,8 @@ const dia = (d: string) => d.slice(0, 10).replace(/-/g, "");
 const proxDia = (d: string) => { const x = new Date(d.slice(0, 10) + "T00:00:00Z"); x.setUTCDate(x.getUTCDate() + 1); return x.toISOString().slice(0, 10).replace(/-/g, ""); };
 
 Deno.serve(async (req) => {
-  const t = new URL(req.url).searchParams.get("t") || "";
+  const u = new URL(req.url), ult = u.pathname.split("/").pop() || "";
+  const t = u.searchParams.get("t") || ult.replace(/\.ics$/i, "");
   if (!/^[0-9a-f-]{36}$/i.test(t)) return new Response("não encontrado", { status: 404 });
   const r = await fetch(`${URL_SB}/rest/v1/rpc/agenda_por_token`, {
     method: "POST", headers: { apikey: CHAVE, Authorization: `Bearer ${CHAVE}`, "Content-Type": "application/json" },
