@@ -124,6 +124,11 @@ svg{flex:none}
 .mc .anel{width:58px;height:58px}.mc .anel b{font-size:13.5px}.mc .anel span{display:none}
 .mc>div{min-width:0}.mc b{display:block;color:var(--ink);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:600px){.hero{grid-template-columns:1fr 1fr;gap:10px}.hc{padding:12px;gap:8px}.hc h4{font-size:11px}.hc p{font-size:12px}.hc .anel{width:84px;height:84px}.anel b{font-size:18px}.anel span{font-size:10px}.hc .big{font-size:22px}}
+#inst{position:fixed;z-index:90;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;transition:.25s;width:min(560px,calc(100vw - 24px));background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#inst.on{opacity:1;transform:translate(-50%,0)}
+#inst .lg{flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#fff;box-shadow:0 0 0 1px var(--line)}
+#inst .tx{flex:1;min-width:200px;font-size:13px;color:var(--muted);line-height:1.45}#inst .tx b{display:block;color:var(--ink);font-size:14.5px}#inst .tx strong{color:var(--ink)}#inst .tx svg{vertical-align:-2px}
+#inst .bt{display:flex;gap:6px;margin-left:auto}
 .lnk{color:var(--blue);font-weight:600;font-size:14px;padding:0}.lnk:hover{text-decoration:underline}
 .lgalt{margin-top:18px;text-align:center;font-size:14.5px;color:var(--muted)}
 .ou{display:flex;align-items:center;gap:12px;color:var(--faint);font-size:13px;margin:20px 0 0}.ou::before,.ou::after{content:"";flex:1;border-top:1px solid var(--line)}
@@ -1728,6 +1733,7 @@ let EXT = null, EXTERNOS = [], OCUPADOS = [];
 Object.assign(ICO, {
   phone: ic('<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>'),
   download: ic('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),
+  iosshare: ic('<path d="M12 3v12M8 7l4-4 4 4"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v7A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H16"/>'),
 });
 Object.assign(UI.ag, {externa:true, ocupados:true});
 
@@ -1934,6 +1940,33 @@ document.addEventListener('click', async e => {
   } catch (err){ toast('Não foi possível concluir: ' + err.message, true); }
 });
 MANUAL.splice(5, 0, ['agenda2', 'download', 'Minha agenda pessoal e notificações no celular', ['<ul><li><b>Trazer minha agenda</b> (Agenda ou Configurações): cole o link .ics do Gmail ou do Hotmail. Seus compromissos aparecem na Agenda e no Hoje, atualizados a cada 15 minutos. Só você vê os títulos; se quiser, a equipe vê apenas "Ocupado".</li><li><b>Notificações no celular</b> (Configurações ou no sino): toque em Ativar e permita. No iPhone, instale o TriPro na tela de início antes. O ícone do app mostra quantas notificações faltam ler (iPhone e computador; no Android aparece uma bolinha).</li></ul>']]);
+
+/* ---------- convite para instalar o app (PWA) ---------- */
+const INST_K = 'tripro-instalar-adiado';
+function podeConvidar(){
+  if (typeof instalado === 'function' && instalado()) return false;
+  if (DEMO && !window.__convidarDemo) return false;
+  const ad = +(LS.get(INST_K) || 0); return !ad || Date.now() - ad > 7 * DIA;
+}
+function conviteInstalar(){
+  if (!podeConvidar() || $('#inst') || TOURI >= 0) return;
+  const ios = ehIOS(), d = document.createElement('div'); d.id = 'inst'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Instalar o TriPro');
+  d.innerHTML = `<span class="lg">${LOGO(30)}</span><div class="tx"><b>Instale o TriPro</b><span>${ios ? 'Abre como app, em tela cheia, e recebe notificações. Toque em <strong>Compartilhar</strong> ' + isvg('iosshare', 14) + ' e depois em <strong>Adicionar à Tela de Início</strong>.' : 'Abre como app, direto da tela inicial ou da barra de tarefas, e recebe notificações.'}</span></div>
+    <div class="bt">${ios ? '' : `<button class="btn btn-p btn-sm" data-a="inst-ok">${isvg('install')}${PROMPT ? 'Instalar' : 'Como instalar'}</button>`}<button class="btn btn-g btn-sm" data-a="inst-nao">Agora não</button></div>`;
+  document.body.appendChild(d); requestAnimationFrame(() => d.classList.add('on'));
+}
+function fecharConvite(adiar){ const d = $('#inst'); if (d){ d.classList.remove('on'); setTimeout(() => d.remove(), 250); } if (adiar) LS.set(INST_K, String(Date.now())); }
+window.addEventListener('beforeinstallprompt', () => { const b = document.querySelector('#inst [data-a="inst-ok"]'); if (b) b.lastChild.textContent = 'Instalar'; });
+window.addEventListener('appinstalled', () => fecharConvite(false));
+{ const i1 = iniciar2;
+  iniciar2 = async function(){ await i1(); if (USER && ME && ME.status === 'aprovado') setTimeout(conviteInstalar, LS.get('tripro-tour') ? 2500 : 60000); };
+}
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  if (el.dataset.a === 'inst-ok'){ fecharConvite(false); await instalar(); }
+  if (el.dataset.a === 'inst-nao') fecharConvite(true);
+  if (el.dataset.a === 'tour-fim') setTimeout(conviteInstalar, 1500);
+});
 
 /* ---------- modais e gaveta ---------- */
 let GV = null, TM = null, EVP = [];
