@@ -435,6 +435,7 @@ td b{color:var(--ink);font-weight:600}
 .cmd-g{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);padding:10px 10px 4px}
 .cmd-o{display:flex;align-items:center;gap:12px;width:100%;padding:9px 10px;border-radius:9px;text-align:left;font-size:14px}
 .cmd-o:hover,.cmd-o.on{background:var(--hover)}
+a.cmd-o{text-decoration:none;color:inherit}a.cmd-o>svg{color:var(--faint)}
 .cmd-o .ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--sky);color:var(--blue);flex:none}
 .cmd-o .ico svg{width:16px;height:16px}
 .cmd-o div{min-width:0;flex:1}.cmd-o b{display:block;color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cmd-o span{font-size:12.5px;color:var(--muted)}
@@ -953,7 +954,9 @@ function cardResumo(){
     <div class="tx">${r ? textoRico(r.texto) : '<p>O resumo é gerado todo dia às 7h15 para o geral e para cada projeto. Toque em Atualizar para gerar agora.</p>'}</div></section>`;
 }
 function cardSprint(){
-  const s = sprintAtiva(); if (!s) return `<section class="card"><div class="card-h"><span class="hic">${isvg('sprint')}</span><h2>Sprint</h2></div><div class="card-b"><p class="empty">Nenhuma sprint ativa.</p><div class="row" style="justify-content:center"><a class="btn" href="#/sprints">Planejar sprint</a></div></div></section>`;
+  const s = sprintAtiva(); if (!s){ const pl = D.sprints.filter(k => k.status === 'planejada').sort((a, b) => a.inicio.localeCompare(b.inicio))[0];
+    if (pl){ const n = D.tarefas.filter(x => x.sprint_id == pl.id).length; return `<section class="card"><div class="card-h"><span class="hic">${isvg('sprint')}</span><h2>${esc(pl.nome)}</h2><span class="pill p-neu">Planejada</span></div><div class="card-b spr"><p><b style="color:var(--ink)">Nenhuma sprint em andamento.</b> A ${esc(pl.nome)} está pronta para começar (${brc(pl.inicio)} a ${brc(pl.fim)}, ${n} tarefa${n === 1 ? '' : 's'}).</p><div class="row"><button class="btn btn-p" data-a="sprint-iniciar" data-id="${pl.id}">${isvg('play')}Iniciar ${esc(pl.nome)} agora</button><button class="btn" data-a="sprint-editar" data-id="${pl.id}">Editar</button></div>${n ? '' : '<p class="sub">Dica: adicione tarefas do backlog a ela antes ou depois de iniciar.</p>'}</div></section>`; }
+    return `<section class="card"><div class="card-h"><span class="hic">${isvg('sprint')}</span><h2>Sprint</h2></div><div class="card-b"><p class="empty">Nenhuma sprint em andamento.</p><div class="row" style="justify-content:center"><button class="btn btn-p" data-a="sprint-nova">${ICO.plus}Criar sprint</button></div></div></section>`; }
   const xs = D.tarefas.filter(x => x.sprint_id == s.id && noFiltro(x)), c = xs.filter(x => x.estado === 'concluida').length, p = xs.length ? Math.round(c / xs.length * 100) : 0, rest = diasEntre(hoje(), s.fim);
   return `<section class="card"><div class="card-h"><span class="hic">${isvg('sprint')}</span><h2>${esc(s.nome)}</h2><span class="pill p-brand">Ativa</span><span class="sp"></span><a class="sub" href="#/quadro">Abrir quadro</a></div><div class="card-b spr">
     <div class="spr-top"><div class="ring" style="--p:${p}" data-v="${p}%"></div><div style="min-width:0;flex:1"><b style="color:var(--ink)">${c} de ${xs.length} tarefas concluídas</b><div class="sub">${brc(s.inicio)} a ${brc(s.fim)} · ${rest > 0 ? `faltam ${rest} dia${rest > 1 ? 's' : ''}` : rest === 0 ? 'termina hoje' : 'prazo encerrado'}</div>${s.objetivo ? `<div class="sub" style="margin-top:4px">${esc(s.objetivo)}</div>` : ''}</div></div>
@@ -1136,7 +1139,7 @@ function telaAgenda(){
   const nav = d => { const [a, b] = UI.mes.split('-').map(Number), x = new Date(Date.UTC(a, b - 1 + d, 1)); return x.toISOString().slice(0, 7); };
   const resps = [...new Set(D.tarefas.filter(noFiltro).map(x => x.responsavel))].sort();
   const ck = (k, l, c) => `<label><input type="checkbox" data-a="ag-tg" data-id="${k}" ${F[k] ? 'checked' : ''}><i style="background:${c}"></i>${l}</label>`;
-  return casca(`${cabeca('Agenda do time', 'Reuniões, prazos de entrega e sprints · ' + escopo(), `<button class="btn" data-a="agenda-sync">${isvg('link')}<span class="hide-m">Google / Outlook</span></button><button class="btn btn-p" data-a="ev-novo" data-id="${h}">${ICO.plus}Evento</button>`)}
+  return casca(`${cabeca('Agenda do time', 'Reuniões, prazos de entrega e sprints · ' + escopo(), `<button class="btn" data-a="agenda-sync">${isvg('link')}<span class="hide-m">Ver na minha agenda</span></button><button class="btn btn-p" data-a="ev-novo" data-id="${h}">${ICO.plus}Evento</button>`)}
     <div class="ag-top"><div class="row" style="gap:6px"><button class="btn btn-sm btn-i" data-a="mes" data-id="${nav(-1)}" aria-label="Mês anterior">${ICO.left}</button><h2 style="min-width:170px;text-align:center;font-size:19px">${MES[m - 1][0].toUpperCase() + MES[m - 1].slice(1)} de ${y}</h2><button class="btn btn-sm btn-i" data-a="mes" data-id="${nav(1)}" aria-label="Próximo mês">${ICO.right}</button><button class="btn btn-sm" data-a="mes" data-id="${h.slice(0, 7)}">Hoje</button></div><span class="sp"></span>
       ${UI.pj === 'all' ? `<div class="f"><span class="lb sub">Projeto</span><select class="sel" data-f="ag.proj"><option value="all">Todos</option>${D.projetos.map(p => `<option value="${esc(p.id)}" ${F.proj === p.id ? 'selected' : ''}>${esc(p.nome)}</option>`).join('')}</select></div>` : ''}
       <div class="f"><span class="lb sub">Responsável</span><select class="sel" data-f="ag.resp"><option value="all">Todos</option>${resps.map(r => `<option ${F.resp === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
@@ -1233,7 +1236,7 @@ function telaConta(){
       <div class="set"><div><b>Resumo diário às 7h30</b><span>Resumo do dia, avanço dos projetos, atrasadas e comentários.</span></div><button class="sw" role="switch" data-a="pref" data-id="r" aria-checked="${!!ME.receber_resumo}" aria-label="Resumo diário"></button></div>
       <div class="set"><div><b>Menções e convites</b><span>Sempre enviados quando alguém menciona você ou te chama para um evento.</span></div></div></section></div>
     <div class="col">
-    <section class="card"><div class="set" style="align-items:center"><div><b>Agenda no Google ou Outlook</b><span>Assine seu link pessoal e veja eventos, prazos e sprints na sua agenda.</span></div><button class="btn" data-a="agenda-sync">${isvg('link')}Configurar</button></div></section>
+    <section class="card"><div class="set" style="align-items:center"><div><b>Ver o TRIPRO na sua agenda</b><span>Google, Outlook ou iPhone: um clique e reuniões, prazos e sprints aparecem lá.</span></div><button class="btn" data-a="agenda-sync">${isvg('link')}Conectar</button></div></section>
     <section class="card"><div class="set" style="align-items:center"><div><b>Instalar o TRIPRO</b><span>Abre como aplicativo no iPhone, Android ou computador.</span></div><button class="btn" data-a="instalar">${isvg('install')}Instalar</button></div></section>
     <section class="card"><div class="set" style="align-items:center"><div><b>Tour pelas telas</b><span>Mostra de novo as dicas de onde fica cada coisa.</span></div><button class="btn" data-a="tour">${isvg('play')}Ver dicas</button></div></section></div></div>`);
 }
@@ -1244,7 +1247,7 @@ const MANUAL = [
   ['tarefas', 'checkbox', 'Criar e acompanhar tarefas', ['<ul><li>Clique em <b>Nova tarefa</b>. Só o título é obrigatório; o resto já vem preenchido (projeto escolhido, sprint ativa, prazo em 3 dias).</li><li>Jeito rápido: na barra de comando escreva, por exemplo, <i>Tela de login amanhã @Rafael #CRM !alta</i>. O TRIPRO entende o prazo, o responsável, o projeto e a prioridade.</li><li>Divida a tarefa em <b>subtarefas</b>. Ao marcar cada uma, o avanço da tarefa é calculado sozinho; quando todas terminam, ela vai para Em revisão.</li><li>Anexe imagens ou PDF de até 10 MB na aba <b>Anexos</b>.</li></ul>']],
   ['quadro', 'board', 'Quadro (kanban)', ['<ul><li>Colunas: A fazer, Fazendo, Em revisão e Concluída.</li><li>No computador, arraste o cartão. No celular, toque nele e use "Mover para".</li><li>Ir para Concluída lança 100% e avisa a equipe por e-mail. Para reabrir, lance um avanço menor que 100%.</li></ul>']],
   ['sprints', 'sprint', 'Sprints', ['<ul><li>Uma sprint é um ciclo de 1 a 2 semanas. Só uma fica ativa por vez.</li><li>O TRIPRO sugere puxar do backlog as tarefas que vencem antes do fim da sprint.</li><li>Ao concluir, o que sobrou vai para a próxima sprint ou volta ao backlog.</li><li>Se o tempo passa mais rápido que as entregas, aparece o alerta "sprint em risco" na tela Hoje.</li></ul>']],
-  ['agenda', 'cal', 'Agenda', ['<ul><li>Mostra reuniões, prazos das tarefas (com a cor da situação) e início e fim das sprints.</li><li>Crie um evento clicando no dia. Chame participantes: eles recebem notificação.</li><li>Em <b>Google / Outlook</b> você pega seu link pessoal e assina na sua agenda. É de mão única: do TRIPRO para a sua agenda.</li></ul>']],
+  ['agenda', 'cal', 'Agenda', ['<ul><li>Mostra reuniões, prazos das tarefas (com a cor da situação) e início e fim das sprints.</li><li>Crie um evento clicando no dia. Chame participantes: eles recebem notificação.</li><li>Em <b>Ver na minha agenda</b>, escolha Google, Outlook ou iPhone e confirme. A agenda TRIPRO aparece lá sozinha (do TRIPRO para a sua agenda).</li></ul>']],
   ['curva', 'chart', 'Projetos e Curva S', ['<ul><li>Planejado: quanto já deveria estar pronto pelo cronograma. Realizado: o último percentual de cada tarefa, somado pelo peso.</li><li>Índice de prazo: realizado dividido por planejado. 1,00 é no prazo; abaixo de 0,90 aparece alerta.</li><li>A projeção usa o ritmo das últimas 4 semanas para estimar o término.</li></ul>']],
   ['conversas', 'chat', 'Conversas e menções', ['<ul><li>Comente em qualquer tarefa (na tela Conversas ou dentro da tarefa).</li><li>Digite <b>@</b> e escolha a pessoa, ou use o botão Mencionar. Ela recebe notificação no sino e por e-mail.</li><li>A aba "Mencionam você" junta tudo o que pediram para você.</li></ul>']],
   ['ia', 'spark', 'Resumo do dia e IA', ['<ul><li>Todo dia às 7h15 sai um resumo geral e um para cada projeto. Ele também vai no e-mail das 7h30.</li><li>Pergunte em português, por exemplo: <i>o que está atrasado no CRM?</i> ou <i>o que o Rafael tem para esta semana?</i></li><li>A IA usa só os dados do TRIPRO. Se não souber, ela diz.</li></ul>']],
@@ -1471,16 +1474,20 @@ function modalEvento(id, dia){
     try { await API.saveEvento(n, id); fechar(); toast(EVP.length ? `Evento salvo. ${EVP.length} participante${EVP.length > 1 ? 's' : ''} notificado${EVP.length > 1 ? 's' : ''}.` : 'Evento salvo.'); UI.mes = d.slice(0, 7); await recarregar(); } catch (err){ toast('Não foi possível salvar: ' + err.message, true); } });
 }
 async function modalSync(novo){
-  abrir(`${cab('Agenda no Google ou Outlook')}<div class="mb"><div class="row"><span class="spin"></span><span class="sub">Gerando seu link…</span></div></div>`);
-  let url; try { url = await API.linkAgenda(novo); } catch (err){ fechar(); toast('Não foi possível gerar o link: ' + err.message, true); return; }
+  abrir(`${cab('Ver o TRIPRO na sua agenda')}<div class="mb"><div class="row"><span class="spin"></span><span class="sub">Preparando…</span></div></div>`);
+  let url; try { url = await API.linkAgenda(novo); } catch (err){ fechar(); toast('Não foi possível preparar: ' + err.message, true); return; }
   if (!$('#dlg')) return;
-  $('#dlg').innerHTML = `${cab('Agenda no Google ou Outlook')}<div class="mb">
-    <p>Assine este link uma vez. Reuniões, prazos e sprints do TRIPRO passam a aparecer na sua agenda e se atualizam sozinhos.</p>
-    <div class="copy"><input class="inp" id="ics-url" readonly value="${esc(url)}" aria-label="Link da agenda"><button class="btn" data-a="copiar">Copiar</button></div>
-    <div class="g2" style="gap:14px"><div class="sec"><h4>Google Agenda</h4><div class="steps"><div><span>Abra <a href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl" target="_blank" rel="noopener">Adicionar agenda pelo URL</a> no computador.</span></div><div><span>Cole o link e toque em <b>Adicionar agenda</b>.</span></div></div></div>
-      <div class="sec"><h4>Outlook</h4><div class="steps"><div><span>Em Calendário, escolha <b>Adicionar calendário</b> e depois <b>Assinar da Web</b>.</span></div><div><span>Cole o link, dê o nome TRIPRO e importe.</span></div></div></div></div>
-    <p class="sub">O link é pessoal: não compartilhe. Vai só do TRIPRO para a sua agenda; o Google atualiza a cada 8 a 24 horas e o Outlook a cada poucas horas. Para levar um evento na hora, abra o evento e use Google Agenda ou Outlook.</p></div>
-    <div class="mf"><button class="btn btn-g" data-a="agenda-novo-link">Gerar novo link</button><span class="sp"></span><button class="btn btn-p" data-a="fechar">Pronto</button></div>`;
+  const web = url.replace(/^https?:/, 'webcal:'), enc = encodeURIComponent(url);
+  const op = (href, ico, t, s) => `<a class="cmd-o" style="border:1px solid var(--line);border-radius:12px;padding:12px 14px" href="${esc(href)}" target="_blank" rel="noopener" data-a="sync-ok"><span class="ico">${isvg(ico)}</span><div><b>${t}</b><span>${s}</span></div>${isvg('arrow')}</a>`;
+  $('#dlg').innerHTML = `${cab('Ver o TRIPRO na sua agenda')}<div class="mb" style="gap:10px">
+    <p>Escolha a sua agenda. Vai abrir uma tela pedindo para <b>adicionar a agenda TRIPRO</b>: é só confirmar. Pronto, reuniões, prazos e sprints aparecem lá e se atualizam sozinhos.</p>
+    ${op('https://calendar.google.com/calendar/render?cid=' + encodeURIComponent(web), 'cal', 'Google Agenda', 'Gmail ou Google Workspace')}
+    ${op('https://outlook.office.com/calendar/0/addfromweb?url=' + enc + '&name=TRIPRO', 'mail', 'Outlook da empresa', 'Microsoft 365, conta de trabalho ou escola')}
+    ${op('https://outlook.live.com/calendar/0/addfromweb?url=' + enc + '&name=TRIPRO', 'mail', 'Outlook pessoal', 'Hotmail, Outlook.com ou Live')}
+    ${op(web, 'cal', 'iPhone, iPad ou Mac', 'Abre o app Calendário do aparelho')}
+    <details style="margin-top:4px"><summary class="sub" style="cursor:pointer;font-weight:600;color:var(--blue)">Outra agenda? Copiar o link</summary><div class="copy" style="margin-top:8px"><input class="inp" id="ics-url" readonly value="${esc(url)}" aria-label="Link da agenda"><button class="btn" data-a="copiar">Copiar</button></div><p class="sub" style="margin-top:6px">Cole o link na opção "adicionar agenda pela internet" (ou "por URL") da sua agenda.</p></details>
+    <p class="sub">Funciona de um lado só: o que muda no TRIPRO aparece na sua agenda. O Google pode levar algumas horas para mostrar mudanças novas. O link é pessoal, não compartilhe.</p></div>
+    <div class="mf"><button class="btn btn-g" data-a="agenda-novo-link" title="Use se o link vazou: o antigo para de funcionar">Trocar meu link</button><span class="sp"></span><button class="btn btn-p" data-a="fechar">Fechar</button></div>`;
 }
 function modalConvite(){
   abrir(`${cab('Convidar pessoa')}<form id="fcv" style="display:contents"><div class="mb">
@@ -1715,6 +1722,7 @@ document.addEventListener('click', async e => {
       case 'ev-excluir': if (el.dataset.ok){ await API.delEvento(id); fechar(); toast('Evento excluído.'); await recarregar(); } else { el.dataset.ok = '1'; el.textContent = 'Confirmar exclusão'; } break;
       case 'ev-ics': baixarIcs(D.eventos.find(k => k.id == id)); break;
       case 'agenda-sync': modalSync(false); break;
+      case 'sync-ok': setTimeout(() => toast('Confirme na tela que abriu. A agenda TRIPRO aparece em alguns minutos.'), 300); break;
       case 'agenda-novo-link': if (el.dataset.ok){ modalSync(true); } else { el.dataset.ok = '1'; el.textContent = 'O link antigo para de funcionar. Confirmar?'; } break;
       case 'copiar': { const i = $('#ics-url'); i.select(); try { await navigator.clipboard.writeText(i.value); } catch (x){ document.execCommand('copy'); } el.textContent = 'Copiado'; break; }
       case 'pref': { const on = el.getAttribute('aria-checked') !== 'true'; el.setAttribute('aria-checked', String(on));
