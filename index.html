@@ -316,6 +316,7 @@ td b{color:var(--ink);font-weight:600}
 .how div{display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--muted)}
 .how i{flex:none;width:26px;height:26px;border-radius:50%;background:var(--sky);color:var(--blue);font-style:normal;font-weight:700;font-size:12.5px;display:grid;place-items:center}
 .how b{color:var(--ink);display:block;font-size:14px}
+.how strong{color:var(--ink);font-weight:600}
 .fi{display:flex;gap:13px;padding:14px 18px;border-bottom:1px solid var(--line)}
 .fi:last-child{border-bottom:0}
 .fi .bx{min-width:0;flex:1}.fi .meta{font-size:12.5px;color:var(--muted)}
@@ -1195,7 +1196,7 @@ function itensAgenda(){
   if (F.sprints) for (const s of D.sprints){ it.push({d:s.inicio, k:'sp', id:s.id, t:'Início · ' + s.nome, c:'#25C4EE', ord:'00', sub:'Sprint'}); it.push({d:s.fim, k:'sp', id:s.id, t:'Fim · ' + s.nome, c:'#25C4EE', ord:'00', sub:'Sprint'}); }
   return it.sort((a, b) => (a.d + a.ord).localeCompare(b.d + b.ord));
 }
-const acaoItem = i => i.k === 'ev' ? 'ev-ver' : i.k === 'pz' ? 'ver' : 'sprint-editar';
+const acaoItem = i => i.k === 'ex' ? 'ext-ver' : i.k === 'oc' ? 'oc-ver' : i.k === 'ev' ? 'ev-ver' : i.k === 'pz' ? 'ver' : 'sprint-editar';
 function telaAgenda(){
   const h = hoje(), F = UI.ag; if (!UI.mes) UI.mes = h.slice(0, 7);
   const [y, m] = UI.mes.split('-').map(Number), prim = new Date(Date.UTC(y, m - 1, 1)), ini0 = iso(prim.getTime() - prim.getUTCDay() * DIA);
@@ -1721,6 +1722,202 @@ MANUAL.splice(6, 0,
   ['bloqueio', 'block', 'Bloqueios e decisões', ['<ul><li>Escreva num comentário "travado", "aguardando" ou "sem acesso": a tarefa ganha a marca <b>Bloqueada</b>. "Liberado" ou "resolvido" tira a marca.</li><li>Comentários com "decidimos", "ficou definido" ou "aprovado pelo cliente" viram registro na tela <b>Decisões</b>.</li><li>Em Decisões, <b>Colar ata</b> separa o que foi decidido numa reunião.</li></ul>']],
   ['sprintauto', 'spark', 'Sprint automática', ['<ul><li>Em Sprints, <b>Montar automaticamente</b> escolhe as tarefas pela prioridade e pelo prazo, respeitando dependências, bloqueios e a capacidade de cada pessoa (80% dos dias úteis, ajustado pelo histórico).</li><li>Você revisa, desmarca o que quiser e aplica.</li></ul>']],
   ['github', 'git', 'GitHub, custo e cliente', ['<ul><li>Cada tarefa tem um código (ex.: <code>#A04</code>). Cite no commit: a tarefa vai para Fazendo e mostra o commit. "fecha #A04" ou PR aceito leva para Em revisão.</li><li><b>Custo</b> (só administradores): cadastre o valor da hora em Configurações e lance as horas no avanço. O projeto mostra orçamento, valor entregue e custo real.</li><li><b>Cliente</b>: no projeto, Compartilhar com cliente gera um link só de leitura, que pode ser desativado a qualquer hora.</li></ul>']]);
+
+/* ================= agenda pessoal no TriPro (Google / Outlook.com) e notificações no celular ================= */
+let EXT = null, EXTERNOS = [], OCUPADOS = [];
+Object.assign(ICO, {
+  phone: ic('<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>'),
+  download: ic('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),
+});
+Object.assign(UI.ag, {externa:true, ocupados:true});
+
+/* ---------- dados ---------- */
+{ const c0 = API.carregar;
+  API.carregar = async function(){
+    await c0.call(API);
+    if (DEMO){ EXT = DEMO.agenda_externa || null; EXTERNOS = DEMO.externos || []; OCUPADOS = DEMO.ocupados || []; return; }
+    const de = iso(Date.now() - 35 * DIA), ate = iso(Date.now() + 125 * DIA) + 'Z';
+    try {
+      const [st, ev, oc] = await Promise.all([sb.rpc('minha_agenda_externa'), sb.from('eventos_externos').select('id,uid,titulo,local,dia_inteiro,inicio,fim').gte('fim', de).order('inicio').limit(2000), sb.rpc('ocupados_equipe', {de, ate})]);
+      EXT = st.error ? null : st.data; EXTERNOS = ev.error ? [] : ev.data || []; OCUPADOS = oc.error ? [] : oc.data || [];
+    } catch (e){ EXT = null; EXTERNOS = []; OCUPADOS = []; }
+  };
+}
+Object.assign(API, {
+  async conectarAgenda(url, equipe){
+    if (DEMO){ EXT = {provedor:/google/i.test(url) ? 'google' : 'outlook', mostrar_equipe:equipe, ultima_sync:new Date().toISOString(), erro:null, total:EXTERNOS.length}; DEMO.agenda_externa = EXT; return {ok:true, total:EXTERNOS.length}; }
+    ok(await sb.rpc('definir_agenda_externa', {endereco:url, equipe})); return API.sincronizarAgenda();
+  },
+  async sincronizarAgenda(){
+    if (DEMO){ await new Promise(r => setTimeout(r, 500)); EXT.ultima_sync = new Date().toISOString(); return {ok:true, total:EXTERNOS.length}; }
+    const r = await sb.functions.invoke('agenda-externa', {body:{}}); if (r.error) throw r.error; return r.data;
+  },
+  async equipeAgenda(b){ if (DEMO){ EXT.mostrar_equipe = b; return; } ok(await sb.rpc('equipe_agenda_externa', {equipe:b})); },
+  async removerAgenda(){ if (DEMO){ EXT = null; DEMO.agenda_externa = null; return; } ok(await sb.rpc('remover_agenda_externa')); },
+});
+
+/* ---------- ocorrências na agenda e no Hoje ---------- */
+const extDia = e => e.dia_inteiro ? e.inicio.slice(0, 10) : ld(e.inicio);
+const extDiaFim = e => e.dia_inteiro ? e.fim.slice(0, 10) : ld(e.fim);
+{ const ia0 = itensAgenda;
+  itensAgenda = function(){
+    const it = ia0(), F = UI.ag;
+    if (F.externa) EXTERNOS.forEach((e, i) => { const a = extDia(e), b = extDiaFim(e); for (let t = T(a); t <= T(b < a ? a : b) && t - T(a) < 62 * DIA; t += DIA) it.push({d:iso(t), k:'ex', id:i, t:e.titulo, h:e.dia_inteiro ? '' : hora(e.inicio), c:'#0E8FB8', ord:e.dia_inteiro ? '0' : hora(e.inicio), sub:'Minha agenda · ' + (e.dia_inteiro ? 'Dia inteiro' : hora(e.inicio) + ' a ' + hora(e.fim)) + (e.local ? ' · ' + e.local : '')}); });
+    if (F.ocupados) OCUPADOS.forEach((e, i) => { const nm = String(e.nome || '').split(' ')[0]; it.push({d:extDia(e), k:'oc', id:i, t:'Ocupado · ' + nm, h:e.dia_inteiro ? '' : hora(e.inicio), c:'#9AA6BF', ord:e.dia_inteiro ? '0' : hora(e.inicio), sub:nm + ' · ' + (e.dia_inteiro ? 'dia inteiro' : hora(e.inicio) + ' a ' + hora(e.fim))}); });
+    return it.sort((a, b) => (a.d + a.ord).localeCompare(b.d + b.ord));
+  };
+}
+{ const ta0 = telaAgenda;
+  telaAgenda = function(){
+    let h = ta0();
+    const ck = (k, l, c) => `<label><input type="checkbox" data-a="ag-tg" data-id="${k}" ${UI.ag[k] ? 'checked' : ''}><i style="background:${c}"></i>${l}</label>`;
+    h = h.replace(/(Sprints<\/label>)/, `$1${EXT ? ck('externa', 'Minha agenda pessoal', '#0E8FB8') : ''}${OCUPADOS.length ? ck('ocupados', 'Ocupado (equipe)', '#9AA6BF') : ''}`);
+    h = h.replace('<button class="btn" data-a="agenda-sync">', `<button class="btn" data-a="trazer-agenda">${isvg('download')}<span class="hide-m">${EXT ? 'Minha agenda pessoal' : 'Trazer minha agenda'}</span></button><button class="btn" data-a="agenda-sync">`);
+    if (!EXT) h = h.replace('<div class="cal">', `<div class="note" style="margin:0">${isvg('download')}<span><b>Veja seus compromissos pessoais aqui.</b> Conecte o Google Agenda ou o Outlook.com (Hotmail) e eles aparecem nesta agenda. <button class="lnk" data-a="trazer-agenda">Conectar</button></span></div><div class="cal">`);
+    return h;
+  };
+}
+{ const th0 = telaHoje;
+  telaHoje = function(){
+    let h = th0(); const d = hoje(), meus = EXTERNOS.filter(e => extDia(e) <= d && extDiaFim(e) >= d).sort((a, b) => (a.dia_inteiro ? '0' : a.inicio).localeCompare(b.dia_inteiro ? '0' : b.inicio));
+    if (!meus.length) return h;
+    const html = meus.slice(0, 6).map(e => `<div class="ag-it" data-a="ext-ver" data-id="${EXTERNOS.indexOf(e)}" style="--c:#0E8FB8"><div class="ag-d"><b style="font-size:13.5px">${e.dia_inteiro ? isvg('cal', 15) : hora(e.inicio)}</b><span>${e.dia_inteiro ? 'dia' : 'hoje'}</span></div><div><b class="t">${esc(e.titulo)}</b><span class="sub">Minha agenda · ${e.dia_inteiro ? 'Dia inteiro' : hora(e.inicio) + ' a ' + hora(e.fim)}${e.local ? ' · ' + esc(e.local) : ''}</span></div></div>`).join('');
+    return h.replace(/(<h2>Hoje na agenda<\/h2>[\s\S]*?<div class="card-b" style="padding-top:2px;padding-bottom:2px">)/, '$1' + html).replace('<p class="empty">Nada marcado para hoje.</p>', '');
+  };
+}
+
+/* ---------- janela: trazer minha agenda ---------- */
+const PASSOS = {
+  google:['Gmail (Google Agenda)', 'https://calendar.google.com/calendar/r/settings', [
+    'Abra o <strong>Google Agenda no computador</strong> (o app do celular não mostra o link). Use o botão abaixo.',
+    'Na esquerda, em <strong>Configurações das minhas agendas</strong>, clique na sua agenda (normalmente o seu nome).',
+    'Role até <strong>Integrar agenda</strong> e copie o <strong>Endereço secreto no formato iCal</strong> (termina em <code>basic.ics</code>).',
+    'Cole aqui embaixo e toque em <strong>Conectar</strong>.']],
+  outlook:['Hotmail / Outlook.com', 'https://outlook.live.com/calendar/0/options/calendar/SharedCalendars', [
+    'Abra o <strong>Outlook.com no computador</strong> já na tela certa pelo botão abaixo (Configurações, Calendário, Calendários compartilhados).',
+    'Em <strong>Publicar um calendário</strong>, escolha <strong>Calendário</strong> e <strong>Pode ver todos os detalhes</strong>, depois toque em <strong>Publicar</strong>.',
+    'Copie o <strong>link ICS</strong> (termina em <code>.ics</code>). O link HTML não serve.',
+    'Cole aqui embaixo e toque em <strong>Conectar</strong>.']],
+};
+let TA = {aba:null};
+function modalTrazer(){
+  const nomeP = {google:'Google Agenda', outlook:'Outlook.com', icloud:'iCloud'};
+  if (EXT){
+    abrir(`${cab('Minha agenda pessoal no TriPro')}<div class="mb" style="gap:12px">
+      <div class="set" style="padding:0;border:0"><span class="hic" style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:${EXT.erro ? 'var(--crit-bg)' : 'var(--ok-bg)'};color:${EXT.erro ? 'var(--crit)' : 'var(--ok)'}">${isvg(EXT.erro ? 'alert' : 'check', 20)}</span><div><b>${EXT.erro ? 'Não foi possível ler a agenda' : 'Conectada: ' + (nomeP[EXT.provedor] || 'agenda')}</b><span>${EXT.erro ? esc(EXT.erro) : `${EXT.total} compromisso(s) entre 30 dias atrás e 4 meses à frente`}${EXT.ultima_sync ? ' · atualizada ' + quando(EXT.ultima_sync) : ' · aguardando a primeira leitura'}</span></div></div>
+      <p class="sub">Atualiza sozinha a cada 15 minutos. Só você vê os títulos dos seus compromissos.</p>
+      <div class="set" style="padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><div><b>Mostrar "Ocupado" para a equipe</b><span>A equipe vê só o horário ocupado com o seu nome, sem título nem local.</span></div><button class="sw" role="switch" data-a="ext-equipe" aria-checked="${!!EXT.mostrar_equipe}" aria-label="Mostrar ocupado para a equipe"></button></div>
+      <details><summary class="sub" style="cursor:pointer;font-weight:600;color:var(--blue)">Trocar o link da agenda</summary><div style="margin-top:10px">${formLink()}</div></details></div>
+      <div class="mf"><button class="btn btn-d btn-sm" data-a="ext-remover">Desconectar</button><span class="sp"></span><button class="btn" data-a="fechar">Fechar</button><button class="btn btn-p" data-a="ext-sync">${isvg('refresh')}Atualizar agora</button></div>`);
+  } else {
+    TA.aba = TA.aba || (/@(hotmail|outlook|live|msn)\./i.test(USER.email) ? 'outlook' : 'google');
+    const [nome, link, ps] = PASSOS[TA.aba];
+    abrir(`${cab('Trazer minha agenda para o TriPro')}<div class="mb" style="gap:14px">
+      <p>Seus compromissos pessoais aparecem na Agenda e na tela Hoje do TriPro. Só você vê os títulos.</p>
+      <div class="seg" style="align-self:flex-start">${Object.entries(PASSOS).map(([k, v]) => `<button data-a="ext-aba" data-id="${k}" class="${TA.aba === k ? 'on' : ''}">${v[0]}</button>`).join('')}</div>
+      <div class="how" style="grid-template-columns:1fr">${ps.map((p, i) => `<div><i>${i + 1}</i><span>${p}</span></div>`).join('')}</div>
+      <a class="btn" href="${link}" target="_blank" rel="noopener" style="align-self:flex-start">${isvg('link')}Abrir ${TA.aba === 'google' ? 'o Google Agenda' : 'o Outlook.com'}</a>
+      ${formLink()}
+      <p class="sub">${isvg('lock', 13)} O link fica guardado só no servidor e não aparece de novo na tela. Se ele vazar, gere outro na sua agenda (no Google: "Redefinir"; no Outlook: "Cancelar publicação" e publicar de novo).</p></div>
+      <div class="mf"><span class="sp"></span><button class="btn" data-a="fechar">Agora não</button></div>`, 'lg');
+  }
+  const f = $('#fext'); if (f) f.addEventListener('submit', async e => { e.preventDefault(); const b = f.querySelector('.btn-p'), url = $('#ext-url').value.trim();
+    if (!/^(https|webcals?):\/\//i.test(url) || !/\.ics(\?|$)|\/ical\//i.test(url)){ toast('Esse não parece o link .ics. Confira o passo 3.', true); return; }
+    b.disabled = true; b.innerHTML = '<span class="spin"></span>Lendo sua agenda…';
+    try { const r = await API.conectarAgenda(url, !!($('#ext-eq') && $('#ext-eq').checked)); await recarregar(true); modalTrazer(); if (r && r.ok) toast(`Agenda conectada: ${r.total} compromisso(s).`); else toast((r && r.erro) || 'Conectada, mas a primeira leitura falhou.', true); }
+    catch (err){ b.disabled = false; b.textContent = 'Conectar'; toast(/Use o link/.test(err.message) ? err.message : 'Não foi possível conectar: ' + err.message, true); } });
+}
+const formLink = () => `<form id="fext" style="display:flex;flex-direction:column;gap:10px"><div class="f"><label for="ext-url">Link .ics da sua agenda</label><input class="inp" id="ext-url" required autocomplete="off" spellcheck="false" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics"></div>
+  ${EXT ? '' : `<label class="ckl" style="border:0;padding:0"><input type="checkbox" id="ext-eq"><span>Mostrar "Ocupado" para a equipe (sem título)</span></label>`}<button class="btn btn-p" style="align-self:flex-start">Conectar</button></form>`;
+function modalExterno(i, oc){
+  const e = (oc ? OCUPADOS : EXTERNOS)[+i]; if (!e) return;
+  const quandoTxt = e.dia_inteiro ? (extDia(e) === extDiaFim(e) ? brc(extDia(e)) + ' · dia inteiro' : brc(extDia(e)) + ' a ' + brc(extDiaFim(e))) : brc(ld(e.inicio)) + ' · ' + hora(e.inicio) + ' a ' + hora(e.fim);
+  abrir(`${cab(oc ? 'Ocupado' : esc(e.titulo))}<div class="mb"><div class="kv"><div><span>Quando</span><b>${quandoTxt}</b></div>${!oc && e.local ? `<div><span>Local</span><b>${esc(e.local)}</b></div>` : ''}<div><span>Origem</span><b>${oc ? 'Agenda pessoal de ' + esc(e.nome || '') : 'Sua agenda pessoal'}</b></div></div>
+    <p class="sub">${oc ? 'A pessoa compartilha só o horário ocupado.' : 'Para mudar, edite na sua agenda (Google ou Outlook). O TriPro atualiza em até 15 minutos.'}</p></div>
+    <div class="mf"><span class="sp"></span>${oc ? '' : `<button class="btn" data-a="ev-novo" data-id="${extDia(e)}">${ICO.plus}Criar evento do time neste dia</button>`}<button class="btn btn-p" data-a="fechar">Fechar</button></div>`);
+}
+
+/* ---------- notificações no celular (Web Push) e número no ícone ---------- */
+const PUSH = {suporte:'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window, ativo:false};
+const ehIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(b, c => c.charCodeAt(0)); };
+async function estadoPush(){
+  if (!PUSH.suporte || DEMO){ PUSH.ativo = DEMO ? !!PUSH.demo : false; return; }
+  try { const r = await navigator.serviceWorker.getRegistration(); const s = r && await r.pushManager.getSubscription(); PUSH.ativo = !!s && Notification.permission === 'granted'; } catch (e){ PUSH.ativo = false; }
+}
+async function ativarPush(){
+  if (DEMO){ PUSH.demo = true; PUSH.ativo = true; toast('Na demonstração não chega notificação. No app publicado, o aparelho pede sua permissão.'); return; }
+  if (!PUSH.suporte){ toast(ehIOS() ? 'No iPhone, instale o TriPro na tela de início (Compartilhar, Adicionar à Tela de Início) e abra por lá.' : 'Este navegador não aceita notificações.', true); return; }
+  const p = await Notification.requestPermission();
+  if (p !== 'granted'){ toast('Permissão negada. Libere as notificações do TriPro nas configurações do navegador ou do celular.', true); return; }
+  const k = await sb.functions.invoke('push', {body:{tipo:'chave'}}); if (k.error || !k.data || !k.data.chave) throw (k.error || new Error('servidor sem chave'));
+  const reg = await navigator.serviceWorker.ready;
+  let s = await reg.pushManager.getSubscription();
+  if (s && s.options && s.options.applicationServerKey){ const atual = btoa(String.fromCharCode(...new Uint8Array(s.options.applicationServerKey))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); if (atual !== k.data.chave){ await s.unsubscribe(); s = null; } }
+  if (!s) s = await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64u(k.data.chave)});
+  const j = s.toJSON();
+  ok(await sb.from('push_inscricoes').upsert({endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth, aparelho:navigator.userAgent.slice(0, 180)}, {onConflict:'endpoint'}));
+  PUSH.ativo = true; toast('Notificações ativadas neste aparelho.');
+  sb.functions.invoke('push', {body:{tipo:'teste'}}).catch(() => {});
+}
+async function desativarPush(){
+  if (DEMO){ PUSH.demo = false; PUSH.ativo = false; return; }
+  const r = await navigator.serviceWorker.getRegistration(), s = r && await r.pushManager.getSubscription();
+  if (s){ await sb.from('push_inscricoes').delete().eq('endpoint', s.endpoint); await s.unsubscribe(); }
+  PUSH.ativo = false; toast('Notificações desativadas neste aparelho.');
+}
+function atualizarSelo(){ /* número no ícone do app instalado */
+  const n = NOTIF.filter(k => !k.lida).length;
+  try { if ('setAppBadge' in navigator){ n ? navigator.setAppBadge(n) : navigator.clearAppBadge(); } } catch (e){}
+}
+function cardPush(){
+  const inst = typeof instalado === 'function' && instalado();
+  const dica = !PUSH.suporte && ehIOS() && !inst ? `<div class="note" style="margin:10px 18px 14px">${isvg('phone')}<span>No iPhone, primeiro instale o TriPro: no Safari toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>. Abra pelo ícone e volte aqui.</span></div>` : '';
+  return `<section class="card" id="push"><div class="set" style="align-items:center"><div><b>Notificações no celular</b><span>${PUSH.ativo ? 'Ativadas neste aparelho. Menções, convites e aprovações chegam mesmo com o app fechado, e o ícone mostra quantas faltam ler.' : 'Receba menções, convites e aprovações mesmo com o app fechado, com o número no ícone.'}</span></div>${PUSH.ativo ? `<button class="btn" data-a="push-off">Desativar</button>` : `<button class="btn btn-p" data-a="push-on">${isvg('bell')}Ativar</button>`}</div>${dica}</section>`;
+}
+
+/* ---------- telas ---------- */
+{ const tc = telaConta;
+  telaConta = function(){
+    const nomeP = {google:'Google Agenda', outlook:'Outlook.com', icloud:'iCloud'};
+    const ext = `<section class="card"><div class="set" style="align-items:center"><div><b>Trazer minha agenda para o TriPro</b><span>${EXT ? (EXT.erro ? `<span style="color:var(--crit)">${esc(EXT.erro)}</span>` : `Conectada ao ${nomeP[EXT.provedor] || 'calendário'} · ${EXT.total} compromisso(s)${EXT.ultima_sync ? ' · ' + quando(EXT.ultima_sync) : ''}`) : 'Gmail ou Hotmail: seus compromissos pessoais aparecem na Agenda e no Hoje.'}</span></div><button class="btn${EXT ? '' : ' btn-p'}" data-a="trazer-agenda">${isvg('download')}${EXT ? 'Gerenciar' : 'Conectar'}</button></div></section>`;
+    return tc().replace(/(<section class="card"><div class="set" style="align-items:center"><div><b>Ver o TriPro na sua agenda<\/b>)/, cardPush() + ext + '$1');
+  };
+}
+{ const pn = painelNotif;
+  painelNotif = function(){ const h = pn(); if (PUSH.ativo || DEMO) return h;
+    return h.replace('<div class="lst"', `<button class="nt" data-a="push-on" style="background:var(--sky)"><span class="ico">${isvg('phone')}</span><div style="min-width:0;flex:1"><b>Receber no celular</b><p>Ative para as notificações chegarem mesmo com o app fechado.</p></div></button><div class="lst"`); };
+}
+{ const ms = modalSync;
+  modalSync = async function(novo){ await ms(novo); const d = $('#dlg .mb'); if (d) d.insertAdjacentHTML('beforeend', `<div class="note" style="margin:0">${isvg('download')}<span>Quer o contrário, ver sua agenda pessoal dentro do TriPro? <button class="lnk" data-a="trazer-agenda">Trazer minha agenda</button></span></div>`); };
+}
+{ const r0 = render;
+  render = function(){ r0(); if (USER && ME && ME.status === 'aprovado') atualizarSelo(); };
+}
+{ const i0 = iniciar2;
+  iniciar2 = async function(){ await i0(); await estadoPush(); if (USER && ME && ME.status === 'aprovado' && rota().r === 'conta') render(); };
+}
+
+/* ---------- ações ---------- */
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  const a = el.dataset.a, id = el.dataset.id;
+  try {
+    switch (a){
+      case 'trazer-agenda': UI.pop = null; modalTrazer(); break;
+      case 'ext-aba': TA.aba = id; modalTrazer(); break;
+      case 'ext-ver': e.stopPropagation(); modalExterno(id, false); break;
+      case 'oc-ver': e.stopPropagation(); modalExterno(id, true); break;
+      case 'ext-sync': { el.disabled = true; el.innerHTML = '<span class="spin"></span>Atualizando…'; const r = await API.sincronizarAgenda(); await recarregar(true); modalTrazer(); if (r && r.ok) toast(`Agenda atualizada: ${r.total} compromisso(s).`); else toast((r && r.erro) || 'Não foi possível ler a agenda.', true); break; }
+      case 'ext-equipe': { const on = el.getAttribute('aria-checked') !== 'true'; el.setAttribute('aria-checked', String(on)); await API.equipeAgenda(on); EXT.mostrar_equipe = on; toast(on ? 'A equipe passa a ver "Ocupado" nos seus horários.' : 'A equipe não vê mais seus horários.'); break; }
+      case 'ext-remover': if (el.dataset.ok){ await API.removerAgenda(); fechar(); toast('Agenda pessoal desconectada. Os compromissos foram apagados do TriPro.'); await recarregar(); } else { el.dataset.ok = '1'; el.textContent = 'Desconectar mesmo?'; } break;
+      case 'push-on': { UI.pop = null; el.disabled = true; try { await ativarPush(); } finally { el.disabled = false; } render(); break; }
+      case 'push-off': await desativarPush(); render(); break;
+      case 'notif-ler': case 'notif-abrir': setTimeout(atualizarSelo, 300); break;
+    }
+  } catch (err){ toast('Não foi possível concluir: ' + err.message, true); }
+});
+MANUAL.splice(5, 0, ['agenda2', 'download', 'Minha agenda pessoal e notificações no celular', ['<ul><li><b>Trazer minha agenda</b> (Agenda ou Configurações): cole o link .ics do Gmail ou do Hotmail. Seus compromissos aparecem na Agenda e no Hoje, atualizados a cada 15 minutos. Só você vê os títulos; se quiser, a equipe vê apenas "Ocupado".</li><li><b>Notificações no celular</b> (Configurações ou no sino): toque em Ativar e permita. No iPhone, instale o TriPro na tela de início antes. O ícone do app mostra quantas notificações faltam ler (iPhone e computador; no Android aparece uma bolinha).</li></ul>']]);
 
 /* ---------- modais e gaveta ---------- */
 let GV = null, TM = null, EVP = [];
