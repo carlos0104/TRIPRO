@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TRIPRO</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="TRIPRO · acompanhamento dos projetos da Trium com Curva S, prazos e entregas">
+<meta name="theme-color" content="#0B1224">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TRIPRO">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Sora:wght@500;600;700&display=swap">
+<style>
+/* TRIPRO · acompanhamento dos projetos da Trium
+   Login: duas áreas em azul-marinho (apresentação 55% · autenticação 45%).
+   App: barra superior com a marca, carteira de projetos e Curva S por projeto. */
+:root{
+  --bg:#F3F5FA; --surface:#FFFFFF; --surface2:#F7F8FC; --line:#E2E6EF; --line2:#EDF0F6;
+  --ink:#0E1730; --ink2:#2B3550; --muted:#5B6683; --faint:#8D96AE;
+  --brand:#3563F6; --brand-h:#2A52DD; --brand-soft:#EAF0FF; --sky:#6594FF; --navy:#0B1224;
+  --ok:#137A55; --ok-bg:#E2F4EC; --warn:#A35F00; --warn-bg:#FFF1D6; --crit:#C3313F; --crit-bg:#FCE7E9; --neu-bg:#EEF1F6;
+  --plan:#8D96AE; --real:#3563F6; --proj:#5B3FD9;
+  --sh:0 1px 2px rgba(14,23,48,.05),0 6px 20px rgba(14,23,48,.05);
+  --f:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; --fd:'Sora','DM Sans',system-ui,Arial,sans-serif;
+  /* paleta fixa do login */
+  --l-bg:#0B1224; --l-bg2:#111D38; --l-pri:#3563F6; --l-acc:#6594FF; --l-txt:#F8FAFC; --l-sec:#94A3B8; --l-line:#263451;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B1224; --surface:#111D38; --surface2:#16244A; --line:#263451; --line2:#1C2A4C;
+  --ink:#F8FAFC; --ink2:#D5DDF0; --muted:#94A3B8; --faint:#6B7A99;
+  --brand:#4D78FF; --brand-h:#6594FF; --brand-soft:#1A2B5C; --sky:#6594FF;
+  --ok:#5BD0A0; --ok-bg:#123A2C; --warn:#F2B45C; --warn-bg:#3A2A10; --crit:#FF7B87; --crit-bg:#3D1720; --neu-bg:#1C2A4C;
+  --plan:#6B7A99; --real:#6594FF; --proj:#A792FF; --sh:0 1px 2px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1224; --surface:#111D38; --surface2:#16244A; --line:#263451; --line2:#1C2A4C;
+  --ink:#F8FAFC; --ink2:#D5DDF0; --muted:#94A3B8; --faint:#6B7A99;
+  --brand:#4D78FF; --brand-h:#6594FF; --brand-soft:#1A2B5C; --sky:#6594FF;
+  --ok:#5BD0A0; --ok-bg:#123A2C; --warn:#F2B45C; --warn-bg:#3A2A10; --crit:#FF7B87; --crit-bg:#3D1720; --neu-bg:#1C2A4C;
+  --plan:#6B7A99; --real:#6594FF; --proj:#A792FF; --sh:0 1px 2px rgba(0,0,0,.35); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;font-family:var(--f);font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+body.is-login{background:var(--l-bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3,p{margin:0}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.tn{font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Marca */
+.mark{display:inline-flex;align-items:center;gap:11px;font-family:var(--fd);font-weight:700;letter-spacing:.08em;font-size:19px;color:var(--ink)}
+.mark b{color:var(--brand);font-weight:700}
+.mark svg{flex:none;filter:drop-shadow(0 6px 14px rgba(53,99,246,.35))}
+
+/* ===== Login ===== */
+.login{min-height:100vh;min-height:100dvh;display:grid;grid-template-columns:minmax(0,55fr) minmax(0,45fr);background:var(--l-bg);color:var(--l-txt)}
+.l-art{position:relative;overflow:hidden;padding:44px 56px 32px;padding-left:max(56px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:36px;
+  background:radial-gradient(60% 50% at 18% 12%,rgba(53,99,246,.28),transparent 70%),radial-gradient(50% 45% at 85% 85%,rgba(101,148,255,.14),transparent 70%),linear-gradient(180deg,#0B1224,#0D1730)}
+.l-art::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(148,163,184,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.06) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(70% 70% at 40% 40%,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(70% 70% at 40% 40%,#000 30%,transparent 80%);pointer-events:none}
+.l-art>*{position:relative}
+.l-art .mark{color:var(--l-txt);font-size:21px}
+.l-art .mark b{color:var(--l-acc)}
+.l-copy{max-width:560px}
+.l-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--l-acc);margin-bottom:18px}
+.l-eyebrow i{width:22px;height:1px;background:var(--l-acc)}
+.l-copy h1{font-family:var(--fd);font-weight:600;font-size:clamp(30px,3.3vw,46px);line-height:1.1;letter-spacing:-.02em;text-wrap:balance}
+.l-copy h1 em{font-style:normal;background:linear-gradient(90deg,#6594FF,#A9C2FF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.l-copy p{color:var(--l-sec);font-size:16px;line-height:1.6;margin-top:18px;max-width:52ch}
+.l-copy p b{color:#D5DEF0;font-weight:600}
+.l-dash{position:relative;max-width:600px;width:100%;margin-top:auto}
+.l-back{position:absolute;inset:18px -18px -14px 18px;border-radius:20px;background:linear-gradient(180deg,rgba(38,52,81,.55),rgba(17,29,56,.35));border:1px solid rgba(38,52,81,.7)}
+.l-card{position:relative;border-radius:20px;background:linear-gradient(180deg,rgba(22,36,74,.92),rgba(17,29,56,.96));border:1px solid var(--l-line);box-shadow:0 30px 60px -20px rgba(0,0,0,.55),0 0 0 1px rgba(101,148,255,.05) inset;padding:20px 22px 18px;backdrop-filter:blur(6px)}
+.l-card-h{display:flex;align-items:center;gap:10px;font-size:13px}
+.l-card-h b{font-weight:600}
+.l-card-h span{color:var(--l-sec)}
+.l-leg{display:flex;gap:14px;margin-left:auto;font-size:11.5px;color:var(--l-sec)}
+.l-leg i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:3px}
+.l-card svg{display:block;width:100%;height:auto;margin-top:8px}
+.l-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.6s cubic-bezier(.4,0,.2,1) .3s forwards}
+.l-draw.d2{animation-delay:.7s;animation-duration:1.4s}
+.l-fade{opacity:0;animation:fade .6s ease 1.7s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fade{to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.l-dash{animation:rise .7s ease .1s both}
+.l-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px;position:relative}
+.l-stat{border-radius:14px;background:rgba(17,29,56,.75);border:1px solid var(--l-line);padding:12px 14px;display:flex;gap:10px;align-items:center;min-width:0}
+.l-stat .ic{width:32px;height:32px;border-radius:9px;background:rgba(53,99,246,.16);color:var(--l-acc);display:grid;place-items:center;flex:none}
+.l-stat b{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.l-stat span{display:block;font-size:11.5px;color:var(--l-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.l-foot{font-size:12px;color:#64748B}
+.l-auth{position:relative;display:grid;place-items:center;padding:40px 32px;padding-right:max(32px,env(safe-area-inset-right,0px));background:radial-gradient(60% 40% at 50% 30%,rgba(53,99,246,.12),transparent 70%),#0A1020;border-left:1px solid rgba(38,52,81,.6)}
+.l-box{width:min(420px,100%);border-radius:22px;background:linear-gradient(180deg,#121F3D,#0F1A33);border:1px solid var(--l-line);box-shadow:0 30px 70px -25px rgba(0,0,0,.6);padding:38px 34px 30px;display:flex;flex-direction:column;gap:22px;animation:rise .6s ease both}
+.l-badge{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:rgba(53,99,246,.12);border:1px solid rgba(101,148,255,.25)}
+.l-box h2{font-family:var(--fd);font-weight:600;font-size:26px;letter-spacing:-.01em}
+.l-box .s{color:var(--l-sec);margin-top:6px;font-size:15px}
+.gbtn{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;height:50px;border-radius:12px;border:1px solid #E2E8F0;background:#FFFFFF;color:#0F172A;font-weight:600;font-size:15px;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,background .15s}
+.gbtn:hover{background:#F1F5F9;box-shadow:0 10px 24px -10px rgba(101,148,255,.55);transform:translateY(-1px)}
+.gbtn:active{transform:none}
+.gbtn:focus-visible{outline:3px solid var(--l-acc);outline-offset:3px}
+.gbtn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+.gbtn .gi{width:20px;height:20px;display:grid;place-items:center;flex:none}
+.gbtn .gi img{width:20px;height:20px;display:block}
+.gbtn .spin{width:18px;height:18px;border-radius:50%;border:2.5px solid #CBD5E1;border-top-color:#3563F6;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.l-lock{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--l-sec);line-height:1.5}
+.l-lock svg{flex:none;margin-top:2px;color:var(--l-acc)}
+.l-sep{height:1px;background:var(--l-line)}
+.l-mini{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12.5px;color:#64748B}
+.l-mini button{border:0;background:none;color:var(--l-acc);cursor:pointer;padding:0;font-weight:500}
+.l-demo{font-size:12.5px;color:#F2B45C;background:rgba(242,180,92,.1);border:1px solid rgba(242,180,92,.25);border-radius:10px;padding:9px 12px}
+.state{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-left,0px));background:radial-gradient(60% 40% at 50% 20%,rgba(53,99,246,.18),transparent 70%),var(--l-bg);color:var(--l-txt)}
+.state .l-box{text-align:center;align-items:center}
+.state .s{color:var(--l-sec)}
+.state .mark{color:var(--l-txt)}
+.state .mark b{color:var(--l-acc)}
+.btn-l{border:1px solid var(--l-line);background:transparent;color:var(--l-txt);border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:500}
+.btn-l:hover{background:rgba(101,148,255,.08)}
+
+/* ===== App ===== */
+.av{width:36px;height:36px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:600;font-size:13px;flex:none;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover}
+.av.lg{width:64px;height:64px;font-size:20px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+body:not(.is-login)::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+.top-in{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:12px;padding-block:12px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.sp{flex:1}
+.wrap{max-width:1400px;margin:0 auto;padding-block:20px 56px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);min-width:0}
+.card-h{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line2);flex-wrap:wrap}
+.card-h h2{font-size:15px;font-weight:600}
+.card-h .s{font-size:12.5px;color:var(--muted)}
+.card-b{padding:16px 18px}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 13px;cursor:pointer;font-weight:500;white-space:nowrap;color:var(--ink)}
+.btn:hover{background:var(--surface2)}
+.btn-p{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn-p:hover{background:var(--brand-h)}
+.btn-sm{padding:5px 10px;font-size:13px}
+.btn-d{color:var(--crit)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.icon-btn{border:1px solid var(--line);background:var(--surface);border-radius:50%;padding:0;cursor:pointer;position:relative}
+.dot{position:absolute;top:-4px;right:-4px;background:var(--crit);color:#fff;font-size:10.5px;border-radius:99px;padding:0 5px;font-weight:700;line-height:17px}
+.banner{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:500}
+.back{border:0;background:none;color:var(--muted);cursor:pointer;padding:0;font-size:13px;display:inline-flex;gap:6px;align-items:center}
+.back:hover{color:var(--ink)}
+.ph{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.ph h1{font-family:var(--fd);font-size:24px;font-weight:600;letter-spacing:-.01em}
+.ph p{color:var(--muted);margin-top:2px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--sh);min-width:0}
+.kpi span{display:block;font-size:12.5px;color:var(--muted);font-weight:500}
+.kpi b{display:block;font-family:var(--fd);font-size:25px;font-weight:600;margin-top:2px;white-space:nowrap}
+.kpi small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.kpi.good b{color:var(--ok)} .kpi.bad b{color:var(--crit)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.pc{display:flex;flex-direction:column;gap:12px;padding:18px;cursor:pointer;transition:border-color .15s,transform .15s}
+.pc:hover{border-color:var(--brand);transform:translateY(-2px)}
+.pc h3{font-family:var(--fd);font-size:17px;font-weight:600}
+.pc .d{color:var(--muted);font-size:13px;min-height:1.4em}
+.pc svg{display:block;width:100%;height:auto}
+.pc .m{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;border-top:1px solid var(--line2);padding-top:10px}
+.pc .m span{display:block;font-size:11.5px;color:var(--muted)}
+.pc .m b{display:block;font-weight:600;font-size:14px;white-space:nowrap}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto}
+.chart .gl{stroke:var(--line2)}
+.chart .ax{fill:var(--faint);font-size:11px;font-family:var(--f)}
+.tip{position:absolute;pointer-events:none;background:#0B1224;color:#fff;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.5;white-space:nowrap;transform:translate(-50%,-100%);box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:5}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:16px;height:3px;border-radius:2px;margin-right:6px;vertical-align:3px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.list{display:flex;flex-direction:column}
+.li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line2);cursor:pointer}
+.li:last-child{border-bottom:0}
+.li b{font-weight:600;display:block}
+.li span{font-size:12.5px;color:var(--muted)}
+.tag{display:inline-block;font-size:11px;font-weight:600;color:var(--brand);background:var(--brand-soft);border-radius:6px;padding:1px 7px;margin-right:6px}
+.empty{color:var(--muted);padding:14px 0}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border-radius:99px;padding:2px 9px;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-ok{color:var(--ok);background:var(--ok-bg)} .p-warn{color:var(--warn);background:var(--warn-bg)} .p-crit{color:var(--crit);background:var(--crit-bg)} .p-brand{color:var(--brand);background:var(--brand-soft)} .p-neu{color:var(--muted);background:var(--neu-bg)}
+.bar{height:8px;border-radius:99px;background:var(--line2);overflow:hidden;min-width:60px}
+.bar i{display:block;height:100%;background:var(--brand);border-radius:99px}
+.bar i.ok{background:var(--ok)}
+.mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.mod b{display:flex;justify-content:space-between;font-weight:600;font-size:13.5px;margin-bottom:6px}
+.mod b span{color:var(--muted);font-weight:500}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sel,.inp{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 10px;font-size:13.5px;max-width:100%}
+.inp{width:100%}
+textarea.inp{min-height:80px;resize:vertical;line-height:1.5}
+.tbl-w{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--surface2);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:middle}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--surface2)}
+td.n,th.n{text-align:right;white-space:nowrap}
+.sub{font-size:12px;color:var(--muted)}
+.cc{font-size:12px;color:var(--muted);white-space:nowrap}
+#ov{position:fixed;inset:0;background:rgba(11,18,36,.55);z-index:40}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(500px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto;background:var(--surface);border-radius:16px;z-index:50;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+.mh{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line2)}
+.mh h3{font-size:16px;font-weight:600;flex:1;min-width:0}
+.mb{padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.mf{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--line2);flex-wrap:wrap}
+.f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.f label{font-size:12.5px;font-weight:600;color:var(--ink2)}
+.f2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);background:var(--surface);z-index:50;box-shadow:-20px 0 50px rgba(0,0,0,.3);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.db{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:18px}
+.db>*{flex-shrink:0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line2);font-size:13.5px}
+.kv span{color:var(--muted)}
+.tl-i{display:grid;grid-template-columns:14px minmax(0,1fr);gap:10px;padding-bottom:12px;position:relative}
+.tl-i::before{content:"";position:absolute;left:6px;top:14px;bottom:0;width:2px;background:var(--line2)}
+.tl-i:last-child::before{display:none}
+.tl-i i{width:14px;height:14px;border-radius:50%;border:3px solid var(--brand);background:var(--surface);margin-top:3px}
+.tl-i i.ok{border-color:var(--ok)}
+.com{background:var(--surface2);border:1px solid var(--line2);border-radius:10px;padding:10px 12px}
+.com .who{font-size:12px;color:var(--muted);margin-bottom:3px;display:flex;gap:8px;align-items:center}
+.com p{white-space:pre-wrap;word-break:break-word}
+.menu{position:absolute;right:0;top:calc(100% + 8px);background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,.2);padding:6px;min-width:230px;z-index:60}
+.menu button{display:flex;width:100%;gap:9px;align-items:center;border:0;background:none;padding:9px 10px;border-radius:8px;cursor:pointer;text-align:left}
+.menu button:hover{background:var(--surface2)}
+.menu .who{padding:8px 10px 10px;border-bottom:1px solid var(--line2);margin-bottom:4px}
+.menu .who b{display:block}
+.menu .who span{font-size:12px;color:var(--muted)}
+#toasts{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:90;max-width:calc(100% - 32px)}
+.toast{background:#0B1224;color:#fff;border-radius:10px;padding:10px 14px;font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.3);border:1px solid #263451}
+.toast.err{background:#9C2232;border-color:#9C2232}
+.sw{position:relative;width:38px;height:22px;border-radius:99px;background:#CBD2E1;border:0;cursor:pointer;flex:none;padding:0}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw[aria-checked="true"]{background:var(--brand)}
+.sw[aria-checked="true"]::after{transform:translateX(16px)}
+.urow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line2)}
+.urow:last-child{border-bottom:0}
+.psel{border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:7px 10px;font-weight:600;max-width:240px}
+.steps{display:flex;flex-direction:column;gap:10px;counter-reset:s}
+.steps div{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start}
+.steps div::before{counter-increment:s;content:counter(s);width:26px;height:26px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:700;font-size:12.5px}
+@media (max-width:980px){
+  .login{grid-template-columns:minmax(0,1fr)}
+  .l-art{padding:28px 20px 8px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));gap:22px}
+  .l-dash,.l-foot{display:none}
+  .l-copy h1{font-size:30px}
+  .l-copy p{font-size:15px}
+  .l-auth{border-left:0;padding:16px max(20px,env(safe-area-inset-right,0px)) 36px max(20px,env(safe-area-inset-left,0px));place-items:start center;background:transparent}
+  .grid2{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:600px){
+  .l-box{padding:28px 22px 24px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .kpi b{font-size:20px}
+  .f2{grid-template-columns:minmax(0,1fr)}
+  .hide-sm{display:none}
+  .wrap,.top-in{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .top .mark span{display:none}
+  .psel{max-width:150px}
+}
+</style>
+</head>
+<body class="is-login">
+<div id="root"></div>
+<div id="toasts" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+'use strict';
+/* =========================================================================
+   CONFIGURAÇÃO — chave PÚBLICA do Supabase (pode ficar no GitHub).
+   Quem protege os dados são as regras de acesso (RLS) do banco.
+   NUNCA coloque aqui a chave service_role.
+   ========================================================================= */
+const CONFIG = {
+  SUPABASE_URL: 'https://wtbhkhkrtmyfzyzegncj.supabase.co',
+  SUPABASE_KEY: 'sb_publishable_M9mqkxnq3XmJ5rDJfQwybw_Ic47G90s',
+  ICONE_GOOGLE: 'icons/google.svg',   // coloque aqui o ícone oficial do Google (opcional)
+};
+const DEMO = /*DEMO*/null;
+
+/* ---------- utilidades ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DIA = 864e5;
+const T = d => Date.parse(d + 'T00:00:00Z');
+const iso = ms => new Date(ms).toISOString().slice(0, 10);
+const hoje = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const br = d => d ? d.slice(8, 10) + '/' + d.slice(5, 7) : '–';
+const brc = d => d ? br(d) + '/' + d.slice(2, 4) : '–';
+const pct = (v, dd = 1) => isFinite(v) ? v.toLocaleString('pt-BR', {minimumFractionDigits:dd, maximumFractionDigits:dd}) + '%' : '–';
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ini = s => (String(s || '?').match(/\p{L}+/gu) || ['?']).slice(0, 2).map(x => x[0].toUpperCase()).join('');
+const quando = ts => { const d = new Date(ts); return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}); };
+const slug = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || ('p' + Date.now().toString(36));
+function toast(m, err){ const t = document.createElement('div'); t.className = 'toast' + (err ? ' err' : ''); t.textContent = m; $('#toasts').appendChild(t); setTimeout(() => t.remove(), 4000); }
+let GID = 0;
+const LOGO = (s = 34) => { const g = 'tg' + (GID++); return `<svg width="${s}" height="${s}" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4A72FF"/><stop offset="1" stop-color="#1B2C78"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#${g})"/><rect x="10" y="30" width="7" height="9" rx="2" fill="#6594FF" opacity=".55"/><rect x="20.5" y="24" width="7" height="15" rx="2" fill="#6594FF" opacity=".78"/><rect x="31" y="17" width="7" height="22" rx="2" fill="#8FB0FF"/><path d="M8 33C19 33 22 13 38 11" stroke="#fff" stroke-width="3.6" fill="none" stroke-linecap="round"/><circle cx="38" cy="11" r="3.6" fill="#fff"/></svg>`; };
+const MARCA = s => `<span class="mark">${LOGO(s)}<span>TRI<b>PRO</b></span></span>`;
+const ICO = {
+  lock:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  trend:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>',
+  clock:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  check:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="m8 12 3 3 5-6"/></svg>',
+  user:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>',
+  back:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>',
+};
+
+/* ---------- acesso aos dados (Supabase ou demonstração) ---------- */
+let sb = null, USER = null, ME = null, MEMBROS = [], D = {projetos:[], tarefas:[], avancos:[], comentarios:[]};
+const API = {
+  async sessao(){
+    if (DEMO){ if (!API._demoIn) return false; USER = {id:'demo-admin', email:'diretoria@trium.exemplo', user_metadata:{full_name:'Carlos (demonstração)'}}; ME = {status:'aprovado', papel:'admin', receber_conclusoes:true, receber_resumo:true, email:USER.email, nome:'Carlos (demonstração)'}; return true; }
+    const { data } = await sb.auth.getSession(); USER = data.session ? data.session.user : null; return !!USER;
+  },
+  async entrar(){
+    if (DEMO){ API._demoIn = true; return iniciar(); }
+    const { error } = await sb.auth.signInWithOAuth({provider:'google', options:{redirectTo: location.origin + location.pathname}});
+    if (error) throw error;
+  },
+  async sair(){ if (DEMO) API._demoIn = false; else await sb.auth.signOut(); USER = null; ME = null; location.hash = ''; render(); },
+  async meuCadastro(){ if (DEMO) return ME; const { data } = await sb.from('membros').select('*').eq('user_id', USER.id).maybeSingle(); return data; },
+  async carregar(){
+    if (DEMO){ D = DEMO; MEMBROS = DEMO.membros || []; return; }
+    const [p, t, a, c] = await Promise.all([
+      sb.from('projetos').select('*').order('ordem').order('nome'),
+      sb.from('tarefas').select('*').order('inicio_previsto').order('id'),
+      sb.from('avancos').select('id,tarefa_id,data,percentual,observacao,autor,criado_em').order('data').order('id'),
+      sb.from('comentarios').select('id,tarefa_id,texto,autor,autor_id,criado_em').order('criado_em'),
+    ]);
+    const err = p.error || t.error || a.error || c.error; if (err) throw err;
+    D = {projetos:p.data, tarefas:t.data.map(x => ({...x, peso:Number(x.peso)})), avancos:a.data.map(x => ({...x, percentual:Number(x.percentual)})), comentarios:c.data};
+    if (ME.papel === 'admin'){ const { data } = await sb.from('membros').select('*').order('criado_em'); MEMBROS = data || []; }
+  },
+  async addAvanco(v){ if (DEMO){ D.avancos.push({...v, id:Date.now(), autor:USER.email, criado_em:new Date().toISOString()}); return; } const { error } = await sb.from('avancos').insert(v); if (error) throw error; },
+  async saveTarefa(x, novo){ if (DEMO){ if (novo) D.tarefas.push(x); else Object.assign(D.tarefas.find(k => k.id === x.id), x); return; } const { error } = novo ? await sb.from('tarefas').insert(x) : await sb.from('tarefas').update(x).eq('id', x.id); if (error) throw error; },
+  async delTarefa(id){ if (DEMO){ D.tarefas = D.tarefas.filter(k => k.id !== id); return; } const { error } = await sb.from('tarefas').delete().eq('id', id); if (error) throw error; },
+  async saveProjeto(x, novo){ if (DEMO){ if (novo) D.projetos.push(x); else Object.assign(D.projetos.find(k => k.id === x.id), x); return; } const { error } = novo ? await sb.from('projetos').insert(x) : await sb.from('projetos').update(x).eq('id', x.id); if (error) throw error; },
+  async delProjeto(id){ if (DEMO){ D.projetos = D.projetos.filter(k => k.id !== id); D.tarefas = D.tarefas.filter(k => k.projeto_id !== id); return; } const { error } = await sb.from('projetos').delete().eq('id', id); if (error) throw error; },
+  async addComentario(c){ if (DEMO){ D.comentarios.push({...c, id:Date.now(), autor:USER.email, autor_id:USER.id, criado_em:new Date().toISOString()}); return; } const { error } = await sb.from('comentarios').insert(c); if (error) throw error; },
+  async delComentario(id){ if (DEMO){ D.comentarios = D.comentarios.filter(k => k.id !== +id); return; } const { error } = await sb.from('comentarios').delete().eq('id', id); if (error) throw error; },
+  async preferencias(c, r){ if (!DEMO){ const { error } = await sb.rpc('minhas_preferencias', {conclusoes:c, resumo:r}); if (error) throw error; } ME.receber_conclusoes = c; ME.receber_resumo = r; },
+  async setMembro(id, patch){ if (DEMO){ Object.assign(MEMBROS.find(m => m.user_id === id), patch); return; } const { error } = await sb.from('membros').update(patch).eq('user_id', id); if (error) throw error; },
+};
+
+/* ---------- cálculos ---------- */
+function ultimo(id, ate){ let u = null; for (const v of D.avancos) if (v.tarefa_id === id && (!ate || v.data <= ate) && (!u || v.data >= u.data)) u = v; return u; }
+const atual = id => (ultimo(id) || {percentual:0}).percentual;
+function status(x, h){
+  const p = atual(x.id);
+  if (p >= 100) return ['Concluída', 'p-ok', 'ok'];
+  if (x.fim_previsto < h) return ['Atrasada', 'p-crit', 'late'];
+  if (x.inicio_previsto <= h) return p > 0 ? ['Em andamento', 'p-brand', 'run'] : ['Deveria ter começado', 'p-warn', 'run'];
+  return ['Planejada', 'p-neu', 'plan'];
+}
+function analise(ts){
+  if (!ts.length) return null;
+  const h = hoje(), total = ts.reduce((s, x) => s + x.peso, 0) || 1;
+  const pv = d => { const r = T(d); let s = 0; for (const x of ts){ const a = T(x.inicio_previsto), b = T(x.fim_previsto) + DIA; s += x.peso * clamp((r + DIA - a) / (b - a), 0, 1); } return s / total * 100; };
+  const ev = d => { let s = 0; for (const x of ts){ const u = ultimo(x.id, d); s += x.peso * (u ? u.percentual / 100 : 0); } return s / total * 100; };
+  const ini0 = ts.reduce((m, x) => x.inicio_previsto < m ? x.inicio_previsto : m, '9999'), fim = ts.reduce((m, x) => x.fim_previsto > m ? x.fim_previsto : m, '0000');
+  const P = pv(h), R = ev(h), vel = (R - ev(iso(T(h) - 28 * DIA))) / 28;
+  let prev = null;
+  if (R >= 99.95) prev = h; else if (vel > 0.01) prev = iso(T(h) + Math.ceil((100 - R) / vel) * DIA);
+  return {h, ini:ini0, fim, P, R, idp:P > 0 ? R / P : NaN, prev, pv, ev};
+}
+const tarefasDe = pid => D.tarefas.filter(x => x.projeto_id === pid);
+const projetoDe = tid => { const t = D.tarefas.find(x => x.id === tid); return t ? D.projetos.find(p => p.id === t.projeto_id) : null; };
+
+/* ---------- gráficos ---------- */
+let CH = null;
+function curvaS(A){
+  const W = 900, H = 346, L = 46, Rm = 24, Tp = 34, B = 34, pw = W - L - Rm, ph = H - Tp - B;
+  const end = [A.fim, A.prev && A.prev < '2100' ? A.prev : null, A.h].filter(Boolean).reduce((m, x) => x > m ? x : m);
+  const t0 = T(A.ini < A.h ? A.ini : iso(T(A.h) - 7 * DIA)), t1 = T(end) + 3 * DIA, X = d => L + (T(d) - t0) / (t1 - t0) * pw, Y = v => Tp + ph - v / 100 * ph;
+  const pts = []; for (let t = t0; t <= t1; t += 3 * DIA) pts.push(iso(t));
+  const plan = pts.map(d => [X(d), Y(A.pv(d))]);
+  const real = pts.filter(d => d <= A.h).concat([A.h]).map(d => [X(d), Y(A.ev(d))]);
+  const path = p => p.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('');
+  let g = '';
+  for (let k = 0; k <= 4; k++){ const y = Tp + ph - ph * k / 4; g += `<line class="gl" x1="${L}" x2="${W - Rm}" y1="${y}" y2="${y}"/><text class="ax" x="${L - 8}" y="${y + 4}" text-anchor="end">${k * 25}%</text>`; }
+  const step = Math.max(7, Math.ceil((t1 - t0) / DIA / 9 / 7) * 7);
+  for (let t = t0; t <= t1; t += step * DIA) g += `<text class="ax" x="${X(iso(t))}" y="${H - 10}" text-anchor="middle">${br(iso(t))}</text>`;
+  const hx = X(A.h), last = real[real.length - 1];
+  let proj = '';
+  if (A.prev && A.R < 99.95 && A.prev < '2100') proj = `<path d="M${last[0]} ${last[1]} L${X(A.prev)} ${Y(100)}" stroke="var(--proj)" stroke-width="2.2" stroke-dasharray="6 5" fill="none"/><circle cx="${X(A.prev)}" cy="${Y(100)}" r="4.5" fill="var(--proj)"/><text class="ax" x="${X(A.prev)}" y="${Y(100) - 12}" text-anchor="${X(A.prev) > W - 120 ? 'end' : 'middle'}" style="fill:var(--proj);font-weight:600">previsão ${br(A.prev)}</text>`;
+  CH = {X, t0, t1, L, pw, W, A, Y};
+  return `<div class="chart" id="ch"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Curva S: planejado ${pct(A.P)} e realizado ${pct(A.R)} até hoje">${g}
+    <line x1="${X(A.fim)}" x2="${X(A.fim)}" y1="${Tp}" y2="${Tp + ph}" stroke="var(--plan)" stroke-dasharray="2 4"/><text class="ax" x="${X(A.fim) - 6}" y="${Tp + ph - 8}" text-anchor="end">fim planejado ${br(A.fim)}</text>
+    <path d="${path(plan)}" stroke="var(--plan)" stroke-width="2.2" fill="none"/>
+    <path d="${path(real)} L${last[0]} ${Tp + ph} L${real[0][0]} ${Tp + ph}Z" fill="var(--real)" opacity=".10"/>
+    <path d="${path(real)}" stroke="var(--real)" stroke-width="3" fill="none" stroke-linejoin="round"/>${proj}
+    <line x1="${hx}" x2="${hx}" y1="${Tp}" y2="${Tp + ph}" stroke="var(--ink)" opacity=".35"/><text class="ax" x="${hx}" y="${Tp + ph - 6}" text-anchor="middle" style="fill:var(--ink);font-weight:600">hoje</text>
+    <circle cx="${last[0]}" cy="${last[1]}" r="5" fill="var(--real)" stroke="var(--surface)" stroke-width="2"/>
+    <line id="gd" x1="0" x2="0" y1="${Tp}" y2="${Tp + ph}" stroke="var(--ink)" stroke-dasharray="3 3" opacity="0"/><rect id="hv" x="${L}" y="${Tp}" width="${pw}" height="${ph}" fill="transparent"/></svg><div class="tip" hidden></div></div>`;
+}
+function mini(A){
+  const W = 300, H = 76;
+  const t0 = T(A.ini), t1 = T(A.fim > A.h ? A.fim : A.h) + DIA, X = d => 4 + (T(d) - t0) / (t1 - t0) * (W - 8), Y = v => H - 4 - v / 100 * (H - 10);
+  const pts = []; for (let t = t0; t <= t1; t += 4 * DIA) pts.push(iso(t));
+  const p = pts.map((d, i) => (i ? 'L' : 'M') + X(d).toFixed(1) + ' ' + Y(A.pv(d)).toFixed(1)).join('');
+  const rr = pts.filter(d => d <= A.h).concat([A.h]);
+  const r = rr.map((d, i) => (i ? 'L' : 'M') + X(d).toFixed(1) + ' ' + Y(A.ev(d)).toFixed(1)).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${p}" stroke="var(--plan)" stroke-width="2" fill="none"/><path d="${r}" stroke="var(--real)" stroke-width="2.6" fill="none"/><circle cx="${X(A.h).toFixed(1)}" cy="${Y(A.R).toFixed(1)}" r="3.5" fill="var(--real)"/></svg>`;
+}
+function ligarGrafico(){
+  const el = $('#ch'); if (!el || !CH) return;
+  const svg = el.querySelector('svg'), tip = el.querySelector('.tip'), gd = el.querySelector('#gd'), hv = el.querySelector('#hv');
+  hv.addEventListener('mousemove', e => {
+    const r = svg.getBoundingClientRect(), sc = r.width / CH.W, x = (e.clientX - r.left) / sc;
+    const t = clamp(CH.t0 + (x - CH.L) / CH.pw * (CH.t1 - CH.t0), CH.t0, CH.t1), d = iso(Math.round(t / DIA) * DIA), A = CH.A;
+    gd.setAttribute('x1', CH.X(d)); gd.setAttribute('x2', CH.X(d)); gd.setAttribute('opacity', '.4');
+    tip.hidden = false; tip.innerHTML = `<b>${brc(d)}</b><br>Planejado ${pct(A.pv(d))}` + (d <= A.h ? `<br>Realizado ${pct(A.ev(d))}` : '');
+    tip.style.left = clamp(CH.X(d) * sc, tip.offsetWidth / 2, r.width - tip.offsetWidth / 2) + 'px'; tip.style.top = (CH.Y(100) * sc + 6) + 'px';
+  });
+  hv.addEventListener('mouseleave', () => { tip.hidden = true; gd.setAttribute('opacity', '0'); });
+}
+
+/* ---------- login ---------- */
+function telaLogin(){
+  return `<div class="login">
+  <section class="l-art">
+    <div>${MARCA(40)}</div>
+    <div class="l-copy">
+      <div class="l-eyebrow"><i></i>Gestão de projetos Trium</div>
+      <h1>Do planejado ao entregue. <em>Tudo sob controle.</em></h1>
+      <p>Acompanhe a <b>evolução dos projetos</b>, monitore <b>prazos</b>, visualize a <b>Curva S</b> e mantenha sua equipe alinhada em uma única plataforma.</p>
+    </div>
+    <div class="l-dash" aria-hidden="true"><div class="l-back"></div>
+      <div class="l-card">
+        <div class="l-card-h"><b>Curva S</b><span>· visão do portfólio</span><div class="l-leg"><span><i style="background:#64748B"></i>Planejado</span><span><i style="background:#6594FF"></i>Realizado</span></div></div>
+        <svg viewBox="0 0 560 210">
+          <defs><linearGradient id="lgA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3563F6" stop-opacity=".35"/><stop offset="1" stop-color="#3563F6" stop-opacity="0"/></linearGradient>
+          <filter id="lgG" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4"/></filter></defs>
+          <g stroke="#263451" stroke-width="1">${[0,1,2,3].map(k => `<line x1="10" x2="550" y1="${24 + k * 52}" y2="${24 + k * 52}"/>`).join('')}</g>
+          <g fill="#64748B" font-size="10" font-family="DM Sans,Arial">${['set','out','nov','dez','jan'].map((m, i) => `<text x="${20 + i * 128}" y="206">${m}</text>`).join('')}</g>
+          <path class="l-fade" d="M12 180 C140 179 190 158 248 112 S318 52 352 46 L352 182 L12 182Z" fill="url(#lgA)"/>
+          <path class="l-draw" pathLength="1" d="M12 180 C150 178 205 150 262 98 S380 26 548 22" stroke="#64748B" stroke-width="2.4" stroke-dasharray="1" fill="none"/>
+          <path class="l-draw d2" pathLength="1" d="M12 180 C140 179 190 158 248 112 S318 52 352 46" stroke="#6594FF" stroke-width="5" fill="none" filter="url(#lgG)" opacity=".55"/>
+          <path class="l-draw d2" pathLength="1" d="M12 180 C140 179 190 158 248 112 S318 52 352 46" stroke="#8FB0FF" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <g class="l-fade"><line x1="352" x2="352" y1="24" y2="182" stroke="#94A3B8" stroke-dasharray="3 4" opacity=".5"/><circle cx="352" cy="46" r="6.5" fill="#0B1224" stroke="#8FB0FF" stroke-width="3"/><circle cx="262" cy="98" r="4" fill="#64748B"/>
+          <rect x="364" y="36" width="96" height="40" rx="9" fill="#0B1224" stroke="#263451"/><text x="376" y="53" font-size="10.5" fill="#94A3B8" font-family="DM Sans,Arial">Realizado</text><text x="376" y="69" font-size="13" font-weight="700" fill="#F8FAFC" font-family="DM Sans,Arial">72%  ·  hoje</text></g>
+        </svg>
+      </div>
+      <div class="l-stats">
+        <div class="l-stat"><span class="ic">${ICO.trend}</span><div style="min-width:0"><b>Evolução</b><span>planejado x realizado</span></div></div>
+        <div class="l-stat"><span class="ic">${ICO.clock}</span><div style="min-width:0"><b>Controle de prazos</b><span>atrasos e previsões</span></div></div>
+        <div class="l-stat"><span class="ic">${ICO.check}</span><div style="min-width:0"><b>Entregas</b><span>semana e conclusões</span></div></div>
+      </div>
+    </div>
+    <div class="l-foot">© TRIPRO · Trium</div>
+  </section>
+  <section class="l-auth">
+    <div class="l-box">
+      <div class="l-badge">${LOGO(34)}</div>
+      <div><h2>Bem-vindo ao TRIPRO</h2><p class="s">Acesse sua conta para acompanhar seus projetos.</p></div>
+      <button class="gbtn" id="gbtn" data-a="entrar"><span class="gi" id="gi">${ICO.user}</span><span id="gtx">Continuar com Google</span></button>
+      <div class="l-lock">${ICO.lock}<span>Novos acessos precisam ser aprovados pelo administrador antes da liberação dos dados do projeto.</span></div>
+      <div class="l-sep"></div>
+      <div class="l-mini"><span>Acesso seguro via Google</span><button data-a="instalar">Instalar o app</button></div>
+      ${DEMO ? '<div class="l-demo">Demonstração com dados de exemplo. Nenhum login real acontece.</div>' : ''}
+    </div>
+  </section></div>`;
+}
+function iconeGoogle(){
+  if (!CONFIG.ICONE_GOOGLE || DEMO) return;
+  const img = new Image(); img.alt = ''; img.width = 20; img.height = 20;
+  img.onload = () => { const s = $('#gi'); if (s){ s.innerHTML = ''; s.appendChild(img); } };
+  img.src = CONFIG.ICONE_GOOGLE;
+}
+function telaEstado(tipo){
+  const nome = (USER.user_metadata && (USER.user_metadata.full_name || USER.user_metadata.name)) || USER.email, foto = USER.user_metadata && USER.user_metadata.avatar_url;
+  const msg = tipo === 'bloqueado' ? ['Acesso bloqueado', 'O administrador bloqueou este acesso. Se for engano, fale com ele.'] : ['Aguardando aprovação', 'Seu pedido de acesso chegou ao administrador. Assim que ele aprovar, atualize a página.'];
+  return `<div class="state"><div class="l-box">${MARCA(32)}<span class="av lg">${foto ? `<img src="${esc(foto)}" alt="">` : ini(nome)}</span><div><b>${esc(nome)}</b><div class="s" style="font-size:13px">${esc(USER.email)}</div></div><h2>${msg[0]}</h2><p class="s">${msg[1]}</p><div class="row" style="justify-content:center"><button class="btn-l" data-a="recarregar">Atualizar</button><button class="btn-l" data-a="sair">Sair</button></div></div></div>`;
+}
+
+/* ---------- app ---------- */
+const UI = {mod:'all', resp:'all', st:'all', q:''};
+const rota = () => { const h = location.hash.slice(1); return h.startsWith('p-') ? h.slice(2) : null; };
+function topo(){
+  const pend = MEMBROS.filter(m => m.status === 'pendente').length, nome = ME.nome || USER.email, foto = ME.foto, pid = rota();
+  return `<header class="top"><div class="top-in"><a href="#" style="text-decoration:none" aria-label="Todos os projetos">${MARCA(32)}</a>
+    <select class="psel" data-a="ir" aria-label="Projeto"><option value="">Todos os projetos</option>${D.projetos.map(p => `<option value="${esc(p.id)}" ${pid === p.id ? 'selected' : ''}>${esc(p.nome)}</option>`).join('')}</select>
+    <span class="sp"></span><button class="btn btn-p" data-a="avanco" aria-label="Lançar avanço">+<span class="hide-sm"> Lançar avanço</span></button>
+    <div style="position:relative"><button class="icon-btn" data-a="menu" aria-label="Menu da conta"><span class="av">${foto ? `<img src="${esc(foto)}" alt="">` : ini(nome)}</span>${pend && ME.papel === 'admin' ? `<span class="dot">${pend}</span>` : ''}</button><div class="menu" id="menu" hidden>
+      <div class="who"><b>${esc(nome)}</b><span>${esc(USER.email)} · ${ME.papel === 'admin' ? 'administrador' : 'editor'}</span></div>
+      ${ME.papel === 'admin' ? '<button data-a="projeto-novo">Novo projeto</button>' : ''}<button data-a="tarefa-nova">Nova entrega</button><button data-a="emails">Meus e-mails</button>${ME.papel === 'admin' ? `<button data-a="usuarios">Usuários${pend ? ` <span class="pill p-crit" style="margin-left:auto">${pend}</span>` : ''}</button>` : ''}<button data-a="instalar">Instalar o app</button><button data-a="tema">Alternar tema</button><button data-a="sair">Sair</button></div></div></div></header>`;
+}
+function li(x, h, comProjeto){ const s = status(x, h), p = D.projetos.find(k => k.id === x.projeto_id); return `<div class="li" data-a="ver" data-id="${esc(x.id)}"><div><b>${comProjeto && p ? `<span class="tag">${esc(p.nome)}</span>` : ''}${esc(x.entrega)}</b><span>${esc(x.responsavel)} · previsto ${br(x.fim_previsto)} · ${pct(atual(x.id), 0)}</span></div><span class="pill ${s[1]}">${s[0]}</span></div>`; }
+function semanaAtual(h){ const seg = iso(T(h) - ((new Date(T(h)).getUTCDay() + 6) % 7) * DIA); return [seg, iso(T(seg) + 6 * DIA)]; }
+function telaCarteira(){
+  const h = hoje(), [seg, dom] = semanaAtual(h);
+  const ativos = D.projetos.filter(p => p.status !== 'concluido');
+  const todas = D.tarefas, atras = todas.filter(x => status(x, h)[2] === 'late'), semana = todas.filter(x => x.fim_previsto >= seg && x.fim_previsto <= dom);
+  const conc = todas.filter(x => atual(x.id) >= 100).length;
+  const cards = D.projetos.map(p => { const ts = tarefasDe(p.id), A = analise(ts), st = {ativo:['Ativo','p-brand'], pausado:['Pausado','p-warn'], concluido:['Concluído','p-ok']}[p.status] || ['Ativo','p-brand'];
+    if (!A) return `<article class="card pc" data-a="abrir" data-id="${esc(p.id)}"><div class="row"><h3>${esc(p.nome)}</h3><span class="sp"></span><span class="pill ${st[1]}">${st[0]}</span></div><p class="d">${esc(p.descricao || '')}</p><p class="sub">Nenhuma entrega cadastrada ainda.</p></article>`;
+    const at = ts.filter(x => status(x, h)[2] === 'late').length, dif = A.R - A.P;
+    return `<article class="card pc" data-a="abrir" data-id="${esc(p.id)}"><div class="row"><h3>${esc(p.nome)}</h3><span class="sp"></span><span class="pill ${st[1]}">${st[0]}</span></div><p class="d">${esc(p.descricao || '')}</p>${mini(A)}
+      <div class="m"><div><span>Realizado</span><b class="tn" style="color:${dif >= -2 ? 'var(--ok)' : 'var(--crit)'}">${pct(A.R, 0)}</b></div><div><span>Planejado</span><b class="tn">${pct(A.P, 0)}</b></div><div><span>Término previsto</span><b class="tn">${A.prev ? brc(A.prev) : '–'}</b></div></div>
+      <div class="row sub"><span>${ts.filter(x => atual(x.id) >= 100).length} de ${ts.length} entregas</span><span class="sp"></span>${at ? `<span class="pill p-crit">${at} atrasada${at > 1 ? 's' : ''}</span>` : '<span class="pill p-ok">sem atrasos</span>'}</div></article>`; }).join('');
+  return topo() + `<main class="wrap">${DEMO ? '<div class="banner">Demonstração com dados de exemplo. As alterações não são gravadas.</div>' : ''}
+    <div class="ph"><div><h1>Projetos da Trium</h1><p>Hoje, ${brc(h)}</p></div><span class="sp"></span>${ME.papel === 'admin' ? '<button class="btn" data-a="projeto-novo">+ Novo projeto</button>' : ''}</div>
+    <div class="kpis"><div class="kpi"><span>Projetos ativos</span><b class="tn">${ativos.length}</b><small>${D.projetos.length} no total</small></div>
+      <div class="kpi"><span>Entregas concluídas</span><b class="tn">${conc} de ${todas.length}</b><small>em todos os projetos</small></div>
+      <div class="kpi ${atras.length ? 'bad' : 'good'}"><span>Atrasadas</span><b class="tn">${atras.length}</b><small>passaram da data prevista</small></div>
+      <div class="kpi"><span>Previstas esta semana</span><b class="tn">${semana.length}</b><small>${br(seg)} a ${br(dom)}</small></div></div>
+    <div class="pgrid">${cards || '<div class="card card-b">Nenhum projeto ainda.</div>'}</div>
+    <div class="grid2">
+      <section class="card"><div class="card-h"><h2>Previstas para esta semana</h2><span class="s">todos os projetos</span></div><div class="card-b list">${semana.sort((a, b) => a.fim_previsto.localeCompare(b.fim_previsto)).map(x => li(x, h, true)).join('') || '<p class="empty">Nenhuma entrega prevista.</p>'}</div></section>
+      <section class="card"><div class="card-h"><h2>Atrasadas</h2><span class="s">todos os projetos</span></div><div class="card-b list">${atras.sort((a, b) => a.fim_previsto.localeCompare(b.fim_previsto)).map(x => li(x, h, true)).join('') || '<p class="empty">Nenhuma entrega atrasada.</p>'}</div></section>
+    </div></main>`;
+}
+function telaProjeto(pid){
+  const P = D.projetos.find(p => p.id === pid); if (!P){ location.hash = ''; return telaCarteira(); }
+  const h = hoje(), base = tarefasDe(pid), ts = base.filter(x => (UI.mod === 'all' || x.modulo === UI.mod) && (UI.resp === 'all' || x.responsavel === UI.resp));
+  const A = analise(ts), mods = [...new Set(base.map(x => x.modulo))], resps = [...new Set(base.map(x => x.responsavel))];
+  const cab = `<button class="back" data-a="voltar">${ICO.back}Todos os projetos</button><div class="ph"><div><h1>${esc(P.nome)}</h1><p>${esc(P.descricao || '')}</p></div><span class="sp"></span>${ME.papel === 'admin' ? `<button class="btn" data-a="projeto-editar" data-id="${esc(pid)}">Editar projeto</button>` : ''}<button class="btn" data-a="tarefa-nova">+ Nova entrega</button></div>`;
+  if (!A) return topo() + `<main class="wrap">${cab}<div class="card card-b"><p>Nenhuma entrega cadastrada neste projeto.</p><button class="btn btn-p" data-a="tarefa-nova" style="margin-top:10px">Cadastrar a primeira entrega</button></div></main>`;
+  const [seg, dom] = semanaAtual(h);
+  const semana = ts.filter(x => x.fim_previsto >= seg && x.fim_previsto <= dom).sort((a, b) => a.fim_previsto.localeCompare(b.fim_previsto));
+  const atras = ts.filter(x => status(x, h)[2] === 'late').sort((a, b) => a.fim_previsto.localeCompare(b.fim_previsto));
+  const conc = ts.filter(x => atual(x.id) >= 100).length, dif = A.R - A.P, atrasoDias = A.prev ? Math.round((T(A.prev) - T(A.fim)) / DIA) : null;
+  const ncom = id => D.comentarios.filter(c => c.tarefa_id === id).length;
+  const lista = ts.filter(x => (UI.st === 'all' || status(x, h)[2] === UI.st) && (!UI.q || (x.entrega + x.modulo + x.responsavel).toLowerCase().includes(UI.q.toLowerCase())));
+  const modBars = mods.map(m => { const xs = base.filter(x => x.modulo === m), tot = xs.reduce((s, x) => s + x.peso, 0), r = xs.reduce((s, x) => s + x.peso * atual(x.id) / 100, 0) / tot * 100; return `<div class="mod"><b>${esc(m)}<span>${pct(r, 0)}</span></b><div class="bar"><i class="${r >= 100 ? 'ok' : ''}" style="width:${r}%"></i></div></div>`; }).join('');
+  return topo() + `<main class="wrap">${DEMO ? '<div class="banner">Demonstração com dados de exemplo. As alterações não são gravadas.</div>' : ''}${cab}
+  <div class="filters"><select class="sel" data-f="mod" aria-label="Módulo"><option value="all">Todos os módulos</option>${mods.map(m => `<option ${UI.mod === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>
+    <select class="sel" data-f="resp" aria-label="Responsável"><option value="all">Todos os responsáveis</option>${resps.map(m => `<option ${UI.resp === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select><span class="sp"></span><span class="sub">Hoje: ${brc(h)}</span></div>
+  <div class="kpis">
+    <div class="kpi"><span>Planejado até hoje</span><b class="tn">${pct(A.P)}</b><small>pelo cronograma</small></div>
+    <div class="kpi ${dif >= -2 ? 'good' : 'bad'}"><span>Realizado</span><b class="tn">${pct(A.R)}</b><small>${dif >= 0 ? '+' : ''}${dif.toLocaleString('pt-BR', {maximumFractionDigits:1})} p.p. em relação ao plano</small></div>
+    <div class="kpi ${A.idp >= .95 ? 'good' : 'bad'}"><span>Índice de prazo</span><b class="tn">${isFinite(A.idp) ? A.idp.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) : '–'}</b><small>realizado ÷ planejado (1,00 = no prazo)</small></div>
+    <div class="kpi ${atrasoDias !== null && atrasoDias > 3 ? 'bad' : 'good'}"><span>Término previsto</span><b class="tn">${A.prev ? brc(A.prev) : '–'}</b><small>${A.prev ? (atrasoDias > 0 ? `${atrasoDias} dias depois do planejado (${br(A.fim)})` : atrasoDias < 0 ? `${-atrasoDias} dias antes do planejado` : 'no dia planejado') : 'sem avanço nas últimas 4 semanas'}</small></div>
+    <div class="kpi"><span>Entregas concluídas</span><b class="tn">${conc} de ${ts.length}</b><small>${atras.length} atrasada${atras.length === 1 ? '' : 's'}</small></div></div>
+  <section class="card"><div class="card-h"><h2>Curva S</h2><span class="s">percentual acumulado, ponderado pelo peso de cada entrega</span><span class="sp"></span><div class="legend"><span><i style="background:var(--plan)"></i>Planejado</span><span><i style="background:var(--real);height:4px"></i>Realizado</span><span><i style="background:var(--proj)"></i>Projeção (ritmo de 4 semanas)</span></div></div><div class="card-b">${curvaS(A)}</div></section>
+  <div class="grid2"><section class="card"><div class="card-h"><h2>Previstas para esta semana</h2><span class="s">${br(seg)} a ${br(dom)}</span></div><div class="card-b list">${semana.map(x => li(x, h)).join('') || '<p class="empty">Nenhuma entrega prevista para esta semana.</p>'}</div></section>
+    <section class="card"><div class="card-h"><h2>Atrasadas</h2><span class="s">passaram da data prevista sem chegar a 100%</span></div><div class="card-b list">${atras.map(x => li(x, h)).join('') || '<p class="empty">Nenhuma entrega atrasada.</p>'}</div></section></div>
+  <section class="card"><div class="card-h"><h2>Avanço por módulo</h2></div><div class="card-b mods">${modBars}</div></section>
+  <section class="card"><div class="card-h"><h2>Entregas</h2><span class="sp"></span>
+      <select class="sel" data-f="st" aria-label="Situação"><option value="all">Todas as situações</option>${[['ok','Concluídas'],['late','Atrasadas'],['run','Em andamento'],['plan','Planejadas']].map(([v, l]) => `<option value="${v}" ${UI.st === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <input class="sel" data-f="q" placeholder="Buscar" value="${esc(UI.q)}" aria-label="Buscar entrega" style="width:150px"></div>
+    <div class="tbl-w"><table><thead><tr><th>Entrega</th><th class="hide-sm">Responsável</th><th>Previsto</th><th style="min-width:130px">Avanço</th><th>Situação</th><th class="n hide-sm">Peso</th><th class="n">Coment.</th></tr></thead><tbody>
+    ${lista.map(x => { const s = status(x, h), p = atual(x.id); return `<tr data-a="ver" data-id="${esc(x.id)}"><td><b>${esc(x.entrega)}</b><div class="sub">${esc(x.modulo)}</div></td><td class="hide-sm">${esc(x.responsavel)}</td><td class="tn" style="white-space:nowrap">${br(x.inicio_previsto)} a ${br(x.fim_previsto)}</td><td><div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i class="${p >= 100 ? 'ok' : ''}" style="width:${p}%"></i></div><span class="tn sub">${pct(p, 0)}</span></div></td><td><span class="pill ${s[1]}">${s[0]}</span></td><td class="n hide-sm tn">${x.peso.toLocaleString('pt-BR')}</td><td class="n cc">${ncom(x.id) || ''}</td></tr>`; }).join('') || '<tr><td colspan="7" class="empty">Nada com esses filtros.</td></tr>'}
+    </tbody></table></div></section>
+  <p class="sub">O realizado de cada entrega é o último percentual lançado. A curva soma as entregas pelo peso (dias de esforço). O planejado distribui o peso de cada entrega igualmente entre o início e o fim previstos.</p></main>`;
+}
+
+/* ---------- modais e gaveta ---------- */
+function abrir(html, gaveta){ fechar(); const o = document.createElement('div'); o.id = 'ov'; o.dataset.a = 'fechar'; document.body.appendChild(o); const m = document.createElement('div'); m.className = gaveta ? 'drawer' : 'modal'; m.id = 'dlg'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.innerHTML = html; document.body.appendChild(m); const f = m.querySelector('input,select,textarea'); if (f && !gaveta) f.focus(); }
+function fechar(){ ['#ov', '#dlg'].forEach(s => { const e = $(s); if (e) e.remove(); }); }
+const cab = t => `<div class="mh"><h3>${t}</h3><button class="btn btn-sm" data-a="fechar" aria-label="Fechar">✕</button></div>`;
+const confirmar = {ok:false};
+function modalAvanco(id){
+  const pid = rota(), ts = D.tarefas.filter(x => (atual(x.id) < 100 || x.id === id) && (!pid || x.projeto_id === pid));
+  if (!ts.length){ toast('Nenhuma entrega em aberto.'); return; }
+  const nomeP = x => { const p = D.projetos.find(k => k.id === x.projeto_id); return !pid && p ? p.nome + ' · ' : ''; };
+  abrir(`${cab('Lançar avanço')}<form id="fa"><div class="mb">
+    <div class="f"><label for="a-t">Entrega</label><select class="inp" id="a-t" required>${ts.map(x => `<option value="${esc(x.id)}" ${x.id === id ? 'selected' : ''}>${esc(nomeP(x) + x.entrega)} · ${pct(atual(x.id), 0)}</option>`).join('')}</select></div>
+    <div class="f2"><div class="f"><label for="a-p">Percentual concluído (acumulado)</label><input class="inp" id="a-p" type="number" min="0" max="100" step="5" required value="${Math.min(100, atual(id || ts[0].id) + 10)}"></div>
+    <div class="f"><label for="a-d">Data</label><input class="inp" id="a-d" type="date" required value="${hoje()}"></div></div>
+    <div class="f"><label for="a-o">Observação (opcional)</label><textarea class="inp" id="a-o" maxlength="500" placeholder="O que foi feito, o que travou"></textarea></div>
+    <p class="sub">Ao lançar 100%, todos os aprovados recebem o e-mail de conclusão.</p></div>
+    <div class="mf"><button type="button" class="btn" data-a="fechar">Cancelar</button><button class="btn btn-p">Lançar</button></div></form>`);
+  $('#a-t').addEventListener('change', e => { $('#a-p').value = Math.min(100, atual(e.target.value) + 10); });
+  $('#fa').addEventListener('submit', async e => { e.preventDefault(); const v = {tarefa_id:$('#a-t').value, percentual:+$('#a-p').value, data:$('#a-d').value, observacao:$('#a-o').value.trim() || null};
+    if (v.percentual < atual(v.tarefa_id) && !confirmar.ok){ confirmar.ok = true; toast('O percentual é menor que o último lançado. Clique em Lançar de novo para confirmar.'); return; }
+    confirmar.ok = false;
+    try { await API.addAvanco(v); fechar(); toast(v.percentual >= 100 ? 'Entrega concluída. E-mail enviado aos aprovados.' : 'Avanço lançado.'); await recarregar(); } catch (err){ toast('Não foi possível lançar: ' + err.message, true); } });
+}
+function modalTarefa(id){
+  const pid = rota() || (D.projetos[0] || {}).id;
+  const x = id ? D.tarefas.find(k => k.id === id) : {id:'', projeto_id:pid, modulo:'', entrega:'', responsavel:'', peso:3, inicio_previsto:hoje(), fim_previsto:iso(T(hoje()) + 4 * DIA)};
+  if (!D.projetos.length){ toast('Cadastre um projeto antes.', true); return; }
+  const mods = [...new Set(D.tarefas.filter(k => k.projeto_id === x.projeto_id).map(k => k.modulo))];
+  abrir(`${cab(id ? 'Editar entrega' : 'Nova entrega')}<form id="ft"><div class="mb">
+    <div class="f"><label for="t-pj">Projeto</label><select class="inp" id="t-pj">${D.projetos.map(p => `<option value="${esc(p.id)}" ${p.id === x.projeto_id ? 'selected' : ''}>${esc(p.nome)}</option>`).join('')}</select></div>
+    <div class="f"><label for="t-e">Entrega</label><input class="inp" id="t-e" required maxlength="160" value="${esc(x.entrega)}" placeholder="Ex.: Tela de propostas"></div>
+    <div class="f2"><div class="f"><label for="t-m">Módulo ou fase</label><input class="inp" id="t-m" required list="lm" value="${esc(x.modulo)}"><datalist id="lm">${mods.map(m => `<option value="${esc(m)}">`).join('')}</datalist></div>
+    <div class="f"><label for="t-r">Responsável</label><input class="inp" id="t-r" required value="${esc(x.responsavel)}"></div></div>
+    <div class="f2"><div class="f"><label for="t-i">Início previsto</label><input class="inp" id="t-i" type="date" required value="${x.inicio_previsto}"></div>
+    <div class="f"><label for="t-f">Fim previsto</label><input class="inp" id="t-f" type="date" required value="${x.fim_previsto}"></div></div>
+    <div class="f"><label for="t-p">Peso (dias de esforço)</label><input class="inp" id="t-p" type="number" min="0.5" step="0.5" required value="${x.peso}"><span class="sub">Entregas com mais peso movem mais a Curva S.</span></div></div>
+    <div class="mf">${id && ME.papel === 'admin' ? `<button type="button" class="btn btn-d" data-a="tarefa-excluir" data-id="${esc(id)}">Excluir</button><span class="sp"></span>` : ''}<button type="button" class="btn" data-a="fechar">Cancelar</button><button class="btn btn-p">Salvar</button></div></form>`);
+  $('#ft').addEventListener('submit', async e => { e.preventDefault();
+    const n = {id:id || ('E' + Date.now().toString(36).toUpperCase()), projeto_id:$('#t-pj').value, entrega:$('#t-e').value.trim(), modulo:$('#t-m').value.trim(), responsavel:$('#t-r').value.trim(), inicio_previsto:$('#t-i').value, fim_previsto:$('#t-f').value, peso:+$('#t-p').value};
+    if (n.fim_previsto < n.inicio_previsto){ toast('O fim previsto não pode ser antes do início.', true); return; }
+    try { await API.saveTarefa(n, !id); fechar(); toast('Entrega salva.'); await recarregar(); } catch (err){ toast('Não foi possível salvar: ' + err.message, true); } });
+}
+function modalProjeto(id){
+  const x = id ? D.projetos.find(p => p.id === id) : {nome:'', descricao:'', status:'ativo', ordem:D.projetos.length + 1};
+  abrir(`${cab(id ? 'Editar projeto' : 'Novo projeto')}<form id="fp"><div class="mb">
+    <div class="f"><label for="p-n">Nome</label><input class="inp" id="p-n" required maxlength="80" value="${esc(x.nome)}" placeholder="Ex.: Diário de Obras"></div>
+    <div class="f"><label for="p-d">Descrição curta</label><input class="inp" id="p-d" maxlength="140" value="${esc(x.descricao || '')}"></div>
+    <div class="f"><label for="p-s">Situação</label><select class="inp" id="p-s">${[['ativo','Ativo'],['pausado','Pausado'],['concluido','Concluído']].map(([v, l]) => `<option value="${v}" ${x.status === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
+    <div class="mf">${id ? `<button type="button" class="btn btn-d" data-a="projeto-excluir" data-id="${esc(id)}">Excluir</button><span class="sp"></span>` : ''}<button type="button" class="btn" data-a="fechar">Cancelar</button><button class="btn btn-p">Salvar</button></div></form>`);
+  $('#fp').addEventListener('submit', async e => { e.preventDefault();
+    const n = {id:id || slug($('#p-n').value), nome:$('#p-n').value.trim(), descricao:$('#p-d').value.trim() || null, status:$('#p-s').value, ordem:x.ordem};
+    if (!id && D.projetos.some(p => p.id === n.id)) n.id += '-' + Date.now().toString(36).slice(-3);
+    try { await API.saveProjeto(n, !id); fechar(); toast('Projeto salvo.'); await recarregar(true); location.hash = 'p-' + n.id; render(); } catch (err){ toast('Não foi possível salvar: ' + err.message, true); } });
+}
+function gavetaTarefa(id){
+  const x = D.tarefas.find(k => k.id === id); if (!x) return;
+  const h = hoje(), s = status(x, h), avs = D.avancos.filter(v => v.tarefa_id === id).slice().reverse(), coms = D.comentarios.filter(c => c.tarefa_id === id), P = projetoDe(id);
+  abrir(`${cab(esc(x.entrega))}<div class="db">
+    <div class="row"><span class="pill ${s[1]}">${s[0]}</span><span class="sub">${P ? esc(P.nome) + ' · ' : ''}${esc(x.modulo)}</span><span class="sp"></span><button class="btn btn-sm" data-a="tarefa-editar" data-id="${esc(id)}">Editar</button><button class="btn btn-sm btn-p" data-a="avanco" data-id="${esc(id)}">Lançar avanço</button></div>
+    <div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1;height:10px"><i class="${atual(id) >= 100 ? 'ok' : ''}" style="width:${atual(id)}%"></i></div><b class="tn">${pct(atual(id), 0)}</b></div>
+    <div><div class="kv"><span>Responsável</span><b>${esc(x.responsavel)}</b></div><div class="kv"><span>Previsto</span><b class="tn">${brc(x.inicio_previsto)} a ${brc(x.fim_previsto)}</b></div><div class="kv"><span>Peso</span><b>${x.peso.toLocaleString('pt-BR')} dias</b></div></div>
+    <div><h3 style="font-size:14px;margin-bottom:10px">Comentários</h3><div style="display:flex;flex-direction:column;gap:8px">${coms.map(c => `<div class="com"><div class="who"><b>${esc(c.autor || '')}</b><span>${quando(c.criado_em)}</span><span class="sp"></span>${(c.autor_id === USER.id || ME.papel === 'admin') ? `<button class="btn btn-sm" style="padding:0 6px" data-a="com-excluir" data-id="${c.id}" data-t="${esc(id)}" aria-label="Excluir comentário">✕</button>` : ''}</div><p>${esc(c.texto)}</p></div>`).join('') || '<p class="sub">Nenhum comentário ainda.</p>'}</div>
+      <form id="fc" style="margin-top:10px;display:flex;flex-direction:column;gap:8px"><textarea class="inp" id="c-t" maxlength="2000" placeholder="Escreva um comentário para a equipe" required></textarea><div class="row"><span class="sub">Entra no resumo diário por e-mail.</span><span class="sp"></span><button class="btn btn-p btn-sm">Comentar</button></div></form></div>
+    <div><h3 style="font-size:14px;margin-bottom:10px">Histórico de avanços</h3>${avs.map(v => `<div class="tl-i"><i class="${v.percentual >= 100 ? 'ok' : ''}"></i><div><b class="tn">${pct(v.percentual, 0)}</b> <span class="sub">em ${brc(v.data)} · ${esc(v.autor || '')}</span>${v.observacao ? `<div class="sub">${esc(v.observacao)}</div>` : ''}</div></div>`).join('') || '<p class="sub">Nenhum avanço lançado.</p>'}</div>
+  </div>`, true);
+  $('#fc').addEventListener('submit', async e => { e.preventDefault(); const t = $('#c-t').value.trim(); if (!t) return;
+    try { await API.addComentario({tarefa_id:id, texto:t}); await recarregar(true); gavetaTarefa(id); } catch (err){ toast('Não foi possível comentar: ' + err.message, true); } });
+}
+function modalEmails(){
+  abrir(`${cab('Meus e-mails')}<div class="mb">
+    <label class="row" style="flex-wrap:nowrap"><button class="sw" role="switch" id="e1" aria-checked="${ME.receber_conclusoes}" aria-label="Conclusões"></button><span><b>Entrega concluída</b><br><span class="sub">Um e-mail sempre que uma entrega de qualquer projeto chega a 100%.</span></span></label>
+    <label class="row" style="flex-wrap:nowrap"><button class="sw" role="switch" id="e2" aria-checked="${ME.receber_resumo}" aria-label="Resumo diário"></button><span><b>Resumo diário às 7h30</b><br><span class="sub">Avanço de cada projeto, concluídas, atrasadas, semana e comentários novos.</span></span></label>
+    <p class="sub">Enviado para ${esc(USER.email)}.</p></div>
+    <div class="mf"><button class="btn" data-a="fechar">Cancelar</button><button class="btn btn-p" data-a="emails-salvar">Salvar</button></div>`);
+  ['#e1', '#e2'].forEach(s => $(s).addEventListener('click', e => { e.preventDefault(); const b = e.currentTarget; b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true')); }));
+}
+function modalUsuarios(){
+  const grupo = (t, ms) => ms.length ? `<h3 style="font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">${t}</h3><div>${ms.map(m => `<div class="urow"><span class="av">${m.foto ? `<img src="${esc(m.foto)}" alt="">` : ini(m.nome || m.email)}</span><div style="min-width:0"><b>${esc(m.nome || m.email)}</b><div class="sub" style="overflow:hidden;text-overflow:ellipsis">${esc(m.email)} · desde ${new Date(m.criado_em).toLocaleDateString('pt-BR')}</div></div><div class="row" style="flex-wrap:nowrap">${
+    m.status === 'pendente' ? `<button class="btn btn-sm btn-p" data-a="u-aprovar" data-id="${m.user_id}">Aprovar</button><button class="btn btn-sm btn-d" data-a="u-bloquear" data-id="${m.user_id}">Recusar</button>`
+    : m.status === 'aprovado' ? (m.user_id === USER.id ? '<span class="sub">você</span>' : `<select class="sel" data-a="u-papel" data-id="${m.user_id}" aria-label="Papel"><option value="editor" ${m.papel === 'editor' ? 'selected' : ''}>Editor</option><option value="admin" ${m.papel === 'admin' ? 'selected' : ''}>Admin</option></select><button class="btn btn-sm btn-d" data-a="u-bloquear" data-id="${m.user_id}">Bloquear</button>`)
+    : `<button class="btn btn-sm" data-a="u-aprovar" data-id="${m.user_id}">Desbloquear</button>`}</div></div>`).join('')}</div>` : '';
+  abrir(`${cab('Usuários')}<div class="mb">${grupo('Aguardando aprovação', MEMBROS.filter(m => m.status === 'pendente')) || '<p class="sub">Nenhum pedido pendente.</p>'}${grupo('Aprovados', MEMBROS.filter(m => m.status === 'aprovado'))}${grupo('Bloqueados', MEMBROS.filter(m => m.status === 'bloqueado'))}
+  <p class="sub">Quem entra com o Google aparece aqui como pendente. Só aprovados veem os projetos e recebem e-mails.</p></div>`);
+}
+
+/* ---------- instalar como app (PWA) ---------- */
+let PROMPT = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); PROMPT = e; });
+window.addEventListener('appinstalled', () => { PROMPT = null; toast('TRIPRO instalado.'); });
+const instalado = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+async function instalar(){
+  if (instalado()){ toast('O TRIPRO já está instalado neste aparelho.'); return; }
+  if (PROMPT){ PROMPT.prompt(); const r = await PROMPT.userChoice; if (r.outcome === 'accepted') PROMPT = null; return; }
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  abrir(`${cab('Instalar o TRIPRO')}<div class="mb">${ios
+    ? `<p>No iPhone ou iPad, pelo <b>Safari</b>:</p><div class="steps"><div><span>Toque em <b>Compartilhar</b> (o quadrado com a seta para cima).</span></div><div><span>Escolha <b>Adicionar à Tela de Início</b>.</span></div><div><span>Toque em <b>Adicionar</b>. O ícone do TRIPRO aparece junto dos outros apps.</span></div></div>`
+    : `<p>No Android ou no computador, pelo <b>Chrome</b> ou <b>Edge</b>:</p><div class="steps"><div><span>Abra o menu do navegador (⋮).</span></div><div><span>Escolha <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</span></div><div><span>Confirme. O TRIPRO abre em janela própria, como um aplicativo.</span></div></div>`}
+    <p class="sub">O app é o mesmo site, sempre atualizado. Não precisa de loja de aplicativos.</p></div>`);
+}
+
+/* ---------- fluxo ---------- */
+async function recarregar(silencioso){ try { await API.carregar(); if (!silencioso || !$('#dlg')) render(); } catch (e){ toast('Erro ao carregar: ' + e.message, true); } }
+let canal = null, iniciando = false;
+async function iniciar(){ if (iniciando) return; iniciando = true; try { await iniciar2(); } finally { iniciando = false; } }
+async function iniciar2(){
+  if (!(await API.sessao())) return render();
+  ME = await API.meuCadastro() || {status:'pendente'};
+  if (ME.status !== 'aprovado') return render();
+  await API.carregar(); render();
+  if (!DEMO && !canal){ let tm; canal = sb.channel('tripro').on('postgres_changes', {event:'*', schema:'public'}, () => { clearTimeout(tm); tm = setTimeout(() => recarregar(true), 600); }).subscribe(); }
+}
+function render(){
+  const r = $('#root'), login = !USER || !ME || ME.status !== 'aprovado';
+  document.body.classList.toggle('is-login', login);
+  if (!USER){ r.innerHTML = telaLogin(); iconeGoogle(); }
+  else if (!ME || ME.status === 'pendente') r.innerHTML = telaEstado('pendente');
+  else if (ME.status === 'bloqueado') r.innerHTML = telaEstado('bloqueado');
+  else { const sy = scrollY, pid = rota(); r.innerHTML = pid ? telaProjeto(pid) : telaCarteira(); ligarGrafico(); scrollTo(0, sy); }
+}
+window.addEventListener('hashchange', () => { UI.mod = 'all'; UI.resp = 'all'; UI.st = 'all'; UI.q = ''; fechar(); if (USER && ME && ME.status === 'aprovado'){ render(); scrollTo(0, 0); } });
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-a]'); if (!el){ const m = $('#menu'); if (m && !e.target.closest('#menu')) m.hidden = true; return; }
+  const a = el.dataset.a, id = el.dataset.id;
+  if (el.tagName === 'SELECT') return;
+  if (a !== 'menu'){ const m = $('#menu'); if (m) m.hidden = true; }
+  try {
+    switch (a){
+      case 'entrar': { const b = $('#gbtn'); b.disabled = true; $('#gi').innerHTML = '<span class="spin"></span>'; $('#gtx').textContent = 'Redirecionando para o Google…';
+        try { await API.entrar(); } catch (err){ b.disabled = false; $('#gtx').textContent = 'Continuar com Google'; $('#gi').innerHTML = ICO.user; iconeGoogle(); throw err; } break; }
+      case 'sair': fechar(); await API.sair(); break;
+      case 'recarregar': location.reload(); break;
+      case 'menu': $('#menu').hidden = !$('#menu').hidden; break;
+      case 'fechar': fechar(); break;
+      case 'abrir': location.hash = 'p-' + id; break;
+      case 'voltar': location.hash = ''; break;
+      case 'avanco': modalAvanco(id); break;
+      case 'ver': gavetaTarefa(id); break;
+      case 'tarefa-nova': modalTarefa(); break;
+      case 'tarefa-editar': modalTarefa(id); break;
+      case 'tarefa-excluir': if (el.dataset.ok){ await API.delTarefa(id); fechar(); toast('Entrega excluída.'); await recarregar(); } else { el.dataset.ok = '1'; el.textContent = 'Confirmar exclusão'; } break;
+      case 'projeto-novo': modalProjeto(); break;
+      case 'projeto-editar': modalProjeto(id); break;
+      case 'projeto-excluir': if (el.dataset.ok){ await API.delProjeto(id); fechar(); toast('Projeto excluído.'); location.hash = ''; await recarregar(); } else { el.dataset.ok = '1'; el.textContent = 'Excluir projeto e entregas?'; } break;
+      case 'com-excluir': await API.delComentario(id); await recarregar(true); gavetaTarefa(el.dataset.t); break;
+      case 'emails': modalEmails(); break;
+      case 'emails-salvar': await API.preferencias($('#e1').getAttribute('aria-checked') === 'true', $('#e2').getAttribute('aria-checked') === 'true'); fechar(); toast('Preferências salvas.'); break;
+      case 'usuarios': modalUsuarios(); break;
+      case 'u-aprovar': await API.setMembro(id, {status:'aprovado', aprovado_em:new Date().toISOString(), aprovado_por:USER.email}); await recarregar(true); modalUsuarios(); toast('Acesso aprovado.'); break;
+      case 'u-bloquear': await API.setMembro(id, {status:'bloqueado'}); await recarregar(true); modalUsuarios(); toast('Acesso bloqueado.'); break;
+      case 'instalar': await instalar(); break;
+      case 'tema': { const d = document.documentElement, dark = d.dataset.theme ? d.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; d.dataset.theme = dark ? 'light' : 'dark'; try { localStorage.setItem('tripro-tema', d.dataset.theme); } catch (x){} render(); break; }
+    }
+  } catch (err){ toast('Não foi possível concluir: ' + err.message, true); }
+});
+document.addEventListener('change', async e => {
+  const el = e.target;
+  if (el.dataset.a === 'ir'){ location.hash = el.value ? 'p-' + el.value : ''; return; }
+  if (el.dataset.f && el.dataset.f !== 'q'){ UI[el.dataset.f] = el.value; render(); }
+  if (el.dataset.a === 'u-papel'){ try { await API.setMembro(el.dataset.id, {papel:el.value}); toast('Papel atualizado.'); await recarregar(true); } catch (err){ toast(err.message, true); } }
+});
+document.addEventListener('input', e => { const el = e.target; if (el.dataset.f === 'q'){ UI.q = el.value; const p = el.selectionStart; render(); const n = document.querySelector('[data-f="q"]'); if (n){ n.focus(); n.setSelectionRange(p, p); } } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fechar(); });
+try { const t = localStorage.getItem('tripro-tema'); if (t) document.documentElement.dataset.theme = t; } catch (e){}
+if ('serviceWorker' in navigator && !DEMO && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+if (!DEMO){
+  if (!window.supabase){ document.getElementById('root').innerHTML = '<div class="state"><div class="l-box"><h2>Não foi possível carregar</h2><p class="s">Verifique a conexão com a internet e atualize a página.</p></div></div>'; }
+  else { sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, {auth:{flowType:'pkce', detectSessionInUrl:true, persistSession:true}});
+    sb.auth.onAuthStateChange(ev => { if (ev === 'SIGNED_IN' && !ME) iniciar(); if (ev === 'SIGNED_OUT'){ USER = null; ME = null; render(); } });
+    iniciar(); }
+} else { render(); }
+</script>
+</body>
+</html>
