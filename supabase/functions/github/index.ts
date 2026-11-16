@@ -1,4 +1,4 @@
-// TRIPRO · webhook do GitHub: commits e pull requests que citam #CODIGO da tarefa movem o quadro sozinhos.
+// TriPro · webhook do GitHub: commits e pull requests que citam #CODIGO da tarefa movem o quadro sozinhos.
 // URL do webhook: https://<projeto>.supabase.co/functions/v1/github  (Content type: application/json)
 // Segredo: crie uma senha qualquer, coloque no GitHub (campo Secret) e no Supabase (segredo GITHUB_WEBHOOK_SECRET).
 // Regras: citou #ID → tarefa sai de "A fazer" para "Fazendo".
@@ -23,7 +23,7 @@ const REF = /#([A-Za-z0-9_-]{2,24})/g;
 const FECHA = /(fecha|fechou|closes?|closed|fix(es|ed)?|resolve[sd]?|conclui|concluído|finaliza|finalizado)\s*:?\s*#([A-Za-z0-9_-]{2,24})/gi;
 
 Deno.serve(async (req) => {
-  if (req.method !== "POST") return json({ ok: true, info: "Webhook do TRIPRO. Configure no GitHub com Content type application/json." });
+  if (req.method !== "POST") return json({ ok: true, info: "Webhook do TriPro. Configure no GitHub com Content type application/json." });
   if (!SEGREDO) return json({ erro: "Configure o segredo GITHUB_WEBHOOK_SECRET no Supabase." }, 503);
   const corpo = await req.text();
   if (!(await assinaturaOk(corpo, req.headers.get("x-hub-signature-256")))) return json({ erro: "assinatura inválida" }, 401);

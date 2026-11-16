@@ -1,4 +1,4 @@
-// TRIPRO · dados do relatório de leitura para o cliente (relatorio.html?t=<token>).
+// TriPro · dados do relatório de leitura para o cliente (relatorio.html?t=<token>).
 // Só devolve dados de um projeto com link ativo; sem nomes de pessoas nem comentários.
 const URL_SB = Deno.env.get("SUPABASE_URL")!;
 const CHAVE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

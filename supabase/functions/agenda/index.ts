@@ -1,4 +1,4 @@
-// TRIPRO · calendário iCal para assinar no Google Agenda ou no Outlook.
+// TriPro · calendário iCal para assinar no Google Agenda ou no Outlook.
 // URL: https://<projeto>.supabase.co/functions/v1/agenda/<token pessoal>.ics  (também aceita ?t=<token>)
 // O token é secreto e pessoal (Configurações > Agenda). Sem token válido, responde 404.
 const URL_SB = Deno.env.get("SUPABASE_URL")!;
@@ -22,8 +22,8 @@ Deno.serve(async (req) => {
   if (!d) return new Response("não encontrado", { status: 404 });
 
   const agora = utc(new Date()), L: string[] = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Trium//TRIPRO//PT-BR", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
-    "X-WR-CALNAME:TRIPRO", "X-WR-TIMEZONE:America/Sao_Paulo", "REFRESH-INTERVAL;VALUE=DURATION:PT1H", "X-PUBLISHED-TTL:PT1H",
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Trium//TriPro//PT-BR", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+    "X-WR-CALNAME:TriPro", "X-WR-TIMEZONE:America/Sao_Paulo", "REFRESH-INTERVAL;VALUE=DURATION:PT1H", "X-PUBLISHED-TTL:PT1H",
   ];
   const ev = (uid: string, campos: string[]) => { L.push("BEGIN:VEVENT", `UID:${uid}@tripro`, `DTSTAMP:${agora}`, ...campos, "END:VEVENT"); };
   for (const e of d.eventos) ev(`evento-${e.id}`, [

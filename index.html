@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>TRIPRO</title>
+<title>TriPro</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="TRIPRO · projetos da Trium: hoje, quadro, agenda, sprints, Curva S e assistente de IA">
+<meta name="description" content="TriPro · projetos da Trium: hoje, quadro, agenda, sprints, Curva S e assistente de IA">
 <meta name="theme-color" content="#142C65">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TRIPRO">
+<meta name="apple-mobile-web-app-title" content="TriPro">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -62,6 +62,7 @@ svg{flex:none}
 
 /* marca */
 .lockup{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.lockup .wm{letter-spacing:-.01em}.lockup .wm>span{font-weight:500;opacity:.92}
 .lockup .lg{flex:none;display:grid;place-items:center;background:#fff;border-radius:28%;box-shadow:0 6px 18px rgba(5,14,40,.28),0 0 0 1px rgba(139,196,255,.25)}
 
 /* login: sempre claro, como na identidade */
@@ -586,7 +587,7 @@ const corP = id => { let h = 0; for (const c of String(id)) h = (h * 31 + c.char
 
 /* ---------- marca e ícones ---------- */
 const LOGO = (s = 36) => `<img src="${CONFIG.LOGO}" width="${s}" height="${s}" alt="">`;
-const MARCA = s => `<span class="lockup"><span class="lg" style="width:${s}px;height:${s}px">${LOGO(Math.round(s * .74))}</span><span>TRIPRO</span></span>`;
+const MARCA = s => `<span class="lockup"><span class="lg" style="width:${s}px;height:${s}px">${LOGO(Math.round(s * .74))}</span><span class="wm">Tri<span>Pro</span></span></span>`;
 const ic = p => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
 const ICO = {
   hoje: ic('<path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/>'),
@@ -884,7 +885,7 @@ function ladoMarca(){
         <div class="st"><div class="c">01</div><b>Planejar</b><span>Defina o percurso</span></div>
         <div class="st"><div class="c">02</div><b>Acompanhar</b><span>Veja a evolução</span></div>
         <div class="st on"><div class="c">03</div><b>Entregar</b><span>Celebre resultados</span></div></div></div></div>
-    <div class="a-foot">© TRIPRO · Trium</div></section>`;
+    <div class="a-foot">© TriPro · Trium</div></section>`;
 }
 const iconeG = () => CONFIG.ICONE_GOOGLE ? `<img src="${esc(CONFIG.ICONE_GOOGLE)}" alt="">` : '';
 const LG = {modo:'entrar', email:'', msg:'', recup:false, google:!!DEMO};
@@ -894,7 +895,7 @@ function telaLogin(){
   const avisos = `<div id="lg-msg">${LG.msg ? `<div class="note">${ICO.lock}<span>${esc(LG.msg)}</span></div>` : ''}</div>`;
   const google = !LG.google ? '' : `<div class="ou"><span>ou</span></div><button type="button" class="gbtn" id="gbtn" data-a="entrar"><span id="gi">${iconeG()}</span><span id="gtx">Continuar com Google</span></button>`;
   const corpo = {
-    entrar: `<h2>Bem-vindo ao TRIPRO</h2><p class="s">Entre com sua conta para continuar.</p>${avisos}
+    entrar: `<h2>Bem-vindo ao TriPro</h2><p class="s">Entre com sua conta para continuar.</p>${avisos}
       <form id="flg" class="lgf">${campo('lg-e', 'E-mail', 'email', `required autocomplete="email" value="${esc(LG.email)}" placeholder="voce@exemplo.com"`)}${campo('lg-s', 'Senha', 'password', 'required autocomplete="current-password" minlength="6"')}
         <div><button type="button" class="lnk" data-a="lg" data-id="esqueci">Esqueci a senha</button></div>
         <button class="btn btn-p lgb" id="lg-ok">Entrar</button></form>${google}
@@ -913,7 +914,7 @@ function telaLogin(){
   return `<div class="auth">${ladoMarca()}<section class="a-r"><div class="a-box">${corpo}
     ${m === 'entrar' ? `<div class="note">${ICO.lock}<span>Novos acessos precisam ser aprovados pelo administrador.</span></div>` : ''}
     ${DEMO ? '<hr class="a-sep"><div class="demo"><b>AMBIENTE DE DEMONSTRAÇÃO</b><span>Qualquer e-mail e senha entram nos dados de exemplo.</span></div>' : ''}
-    <div class="a-rf">${DEMO ? 'Acesso seguro · TRIPRO' : `Acesso seguro · TRIPRO · <a href="#" data-a="instalar" style="color:inherit">Instalar o app</a>`}</div></div></section></div>`;
+    <div class="a-rf">${DEMO ? 'Acesso seguro · TriPro' : `Acesso seguro · TriPro · <a href="#" data-a="instalar" style="color:inherit">Instalar o app</a>`}</div></div></section></div>`;
 }
 function aviso(t){ LG.msg = t; const el = $('#lg-msg'); if (el) el.innerHTML = t ? `<div class="note">${ICO.lock}<span>${esc(t)}</span></div>` : ''; }
 function ligarLogin(){
@@ -938,7 +939,7 @@ function telaEstado(tipo){
     <div class="a-who"><span class="av lg">${foto ? `<img src="${esc(foto)}" alt="">` : ini(nome)}</span><div style="min-width:0"><b>${esc(nome)}</b><span class="sub">${esc(USER.email)}</span></div></div>
     <h2>${msg[0]}</h2><p class="s">${msg[1]}</p>
     <div class="a-btns"><button class="btn btn-p" data-a="recarregar">Atualizar</button><button class="btn" data-a="sair">${ICO.out}Sair</button></div>
-    <div class="a-rf">Acesso seguro · TRIPRO</div></div></section></div>`;
+    <div class="a-rf">Acesso seguro · TriPro</div></div></section></div>`;
 }
 
 /* ---------- rotas e estado ---------- */
@@ -979,7 +980,7 @@ function casca(corpo){
     return `<div class="ng${ab ? ' ab' : ''}${tem ? ' tem' : ''}"><button class="nl nh" data-a="grp" data-id="${k}" aria-expanded="${ab}" title="${txt}">${ICO[ico]}<span class="lbl">${txt}</span>${!ab && tot ? `<span class="bd">${tot}</span>` : ''}<span class="chv">${isvg('down', 15)}</span></button>
       <div class="nsub">${itens.map(([r, i, t, n]) => link(r, i, t, n ? `<span class="bd">${n}</span>` : '', r === 'quadro' ? 'quadro' : '')).join('')}</div></div>`; };
   return `<div class="app"><aside class="sb" aria-label="Menu principal">
-    <div class="sb-h"><a href="#/hoje" style="text-decoration:none" aria-label="TRIPRO, hoje">${MARCA(34)}</a></div>
+    <div class="sb-h"><a href="#/hoje" style="text-decoration:none" aria-label="TriPro, hoje">${MARCA(34)}</a></div>
     <nav data-tour="menu">
       ${link('hoje', 'hoje', 'Hoje')}
       ${grupo('trabalho', 'board', 'Trabalho', [['quadro', 'board', 'Quadro'], ['agenda', 'cal', 'Agenda'], ['sprints', 'sprint', 'Sprints']])}
@@ -1227,7 +1228,7 @@ function telaConversas(){
     <section class="card"><div class="card-h"><span class="hic">${isvg('chat')}</span><h2>Novo comentário</h2></div><form class="card-b" id="fnc" style="display:flex;flex-direction:column;gap:12px">
       <div class="f"><label for="nc-t">Sobre qual tarefa</label><select class="inp" id="nc-t" required><option value="">Escolha a tarefa</option>${tarefasOp.map(x => `<option value="${esc(x.id)}">${esc((UI.pj === 'all' ? (projeto(x.projeto_id) || {}).nome + ' · ' : '') + x.entrega)}</option>`).join('')}</select></div>
       ${campoMencao('nc')}
-      <div class="row"><span class="sub">Quem for mencionado recebe notificação no TRIPRO e por e-mail.</span><span class="sp"></span><button class="btn btn-p">${isvg('send')}Comentar</button></div></form></section>
+      <div class="row"><span class="sub">Quem for mencionado recebe notificação no TriPro e por e-mail.</span><span class="sp"></span><button class="btn btn-p">${isvg('send')}Comentar</button></div></form></section>
     <section class="card"><div class="tabs" role="tablist">${[['todas','Todas', todas.length],['mim','Mencionam você', todas.filter(c => (c.mencoes || []).includes(USER.id)).length],['meus','Meus comentários', todas.filter(c => c.autor_id === USER.id).length]].map(([k, l, n]) => `<button class="tab${t === k ? ' on' : ''}" data-a="c-tab" data-id="${k}">${l}<span class="ct">${n}</span></button>`).join('')}</div>
       ${cs.map(c => { const x = D.tarefas.find(k => k.id === c.tarefa_id), P = x && projeto(x.projeto_id);
         return `<div class="fi"><span class="av">${ini(c.autor)}</span><div class="bx"><div class="meta"><b style="color:var(--ink)">${esc(c.autor || '')}</b> · ${quando(c.criado_em)}${(c.mencoes || []).includes(USER.id) ? ' · <span class="pill p-brand">mencionou você</span>' : ''}</div><p>${comMencoes(c.texto)}</p><span class="ref" data-a="ver" data-id="${esc(c.tarefa_id)}">${isvg('arrow', 14)}${P && UI.pj === 'all' ? esc(P.nome) + ' · ' : ''}${esc(x ? x.entrega : 'Tarefa removida')}</span></div>${c.autor_id === USER.id || admin() ? `<button class="btn btn-sm btn-g btn-i" data-a="com-excluir" data-id="${c.id}" title="Excluir comentário" aria-label="Excluir comentário">${isvg('trash')}</button>` : ''}</div>`; }).join('') || '<p class="empty">Nenhum comentário aqui ainda.</p>'}</section>`);
@@ -1283,8 +1284,8 @@ function telaUsuarios(){
       : t === 'aprovado' ? (m.user_id === USER.id ? '<span class="sub">Seu acesso</span>' : `<select class="sel" data-a="u-papel" data-id="${esc(m.user_id)}" aria-label="Papel" style="height:32px;font-size:13px"><option value="editor" ${m.papel === 'editor' ? 'selected' : ''}>Editor</option><option value="admin" ${m.papel === 'admin' ? 'selected' : ''}>Administrador</option></select><button class="btn btn-sm btn-d" data-a="u-bloquear" data-id="${esc(m.user_id)}">${isvg('ban')}Bloquear</button>`)
       : `<button class="btn btn-sm btn-ok" data-a="u-aprovar" data-id="${esc(m.user_id)}">${isvg('unlock')}Desbloquear</button><button class="btn btn-sm btn-d" data-a="u-remover" data-id="${esc(m.user_id)}">${isvg('trash')}Remover</button>`}</div></div>`;
   const conv = CONVITES.filter(c => !q || norm((c.nome || '') + c.email).includes(q));
-  const linhaC = c => `<div class="urow"><span class="av">${isvg('mail', 16)}</span><div class="who"><b>${esc(c.nome || c.email)} <span class="pill ${c.usado_em ? 'p-ok' : 'p-warn'}" style="margin-left:4px">${c.usado_em ? 'Já entrou' : 'Aguardando primeiro acesso'}</span></b><span>${esc(c.email)} · ${c.papel === 'admin' ? 'Administrador' : 'Editor'}</span><span>Convidado em ${new Date(c.criado_em).toLocaleDateString('pt-BR')}</span></div><div class="acts">${c.usado_em ? '' : `<button class="btn btn-sm" data-a="u-link" title="Copiar o link do TRIPRO para enviar">${isvg('link')}Copiar link</button>`}<button class="btn btn-sm btn-d" data-a="u-conv-del" data-id="${esc(c.email)}">${isvg('trash')}${c.usado_em ? 'Apagar' : 'Cancelar'}</button></div></div>`;
-  return casca(`${cabeca('Usuários e acessos', 'Convide, aprove, rejeite e bloqueie quem acessa o TRIPRO', `<button class="btn btn-p" data-a="u-convidar">${isvg('userplus')}Convidar pessoa</button>`)}
+  const linhaC = c => `<div class="urow"><span class="av">${isvg('mail', 16)}</span><div class="who"><b>${esc(c.nome || c.email)} <span class="pill ${c.usado_em ? 'p-ok' : 'p-warn'}" style="margin-left:4px">${c.usado_em ? 'Já entrou' : 'Aguardando primeiro acesso'}</span></b><span>${esc(c.email)} · ${c.papel === 'admin' ? 'Administrador' : 'Editor'}</span><span>Convidado em ${new Date(c.criado_em).toLocaleDateString('pt-BR')}</span></div><div class="acts">${c.usado_em ? '' : `<button class="btn btn-sm" data-a="u-link" title="Copiar o link do TriPro para enviar">${isvg('link')}Copiar link</button>`}<button class="btn btn-sm btn-d" data-a="u-conv-del" data-id="${esc(c.email)}">${isvg('trash')}${c.usado_em ? 'Apagar' : 'Cancelar'}</button></div></div>`;
+  return casca(`${cabeca('Usuários e acessos', 'Convide, aprove, rejeite e bloqueie quem acessa o TriPro', `<button class="btn btn-p" data-a="u-convidar">${isvg('userplus')}Convidar pessoa</button>`)}
     <section class="card card-b how"><div><i>1</i><span><b>Convide ou espere o pedido</b>Convidado entra já aprovado. Quem se cadastra sozinho cai em Pendentes.</span></div><div><i>2</i><span><b>Aprove ou rejeite</b>Escolha Editor ou Administrador.</span></div><div><i>3</i><span><b>Bloqueie quando precisar</b>O acesso para na hora; dá para desbloquear depois.</span></div></section>
     <section class="card"><div class="tabs" role="tablist">${Object.entries(grupos).map(([k, l]) => `<button class="tab${t === k ? ' on' : ''}" role="tab" aria-selected="${t === k}" data-a="u-tab" data-id="${k}">${l}<span class="ct">${k === 'convites' ? CONVITES.filter(c => !c.usado_em).length : MEMBROS.filter(m => m.status === k).length}</span></button>`).join('')}
       <span class="sp"></span><label class="search">${ICO.search}<input class="sel" data-f="uq" placeholder="Buscar pessoa" value="${esc(UI.uq)}" aria-label="Buscar pessoa" style="height:34px;width:200px"></label></div>
@@ -1304,26 +1305,26 @@ function telaConta(){
       <div class="set"><div><b>Resumo diário às 7h30</b><span>Resumo do dia, avanço dos projetos, atrasadas e comentários.</span></div><button class="sw" role="switch" data-a="pref" data-id="r" aria-checked="${!!ME.receber_resumo}" aria-label="Resumo diário"></button></div>
       <div class="set"><div><b>Menções e convites</b><span>Sempre enviados quando alguém menciona você ou te chama para um evento.</span></div></div></section></div>
     <div class="col">
-    <section class="card"><div class="set" style="align-items:center"><div><b>Ver o TRIPRO na sua agenda</b><span>Google, Outlook ou iPhone: um clique e reuniões, prazos e sprints aparecem lá.</span></div><button class="btn" data-a="agenda-sync">${isvg('link')}Conectar</button></div></section>
-    <section class="card"><div class="set" style="align-items:center"><div><b>Instalar o TRIPRO</b><span>Abre como aplicativo no iPhone, Android ou computador.</span></div><button class="btn" data-a="instalar">${isvg('install')}Instalar</button></div></section>
+    <section class="card"><div class="set" style="align-items:center"><div><b>Ver o TriPro na sua agenda</b><span>Google, Outlook ou iPhone: um clique e reuniões, prazos e sprints aparecem lá.</span></div><button class="btn" data-a="agenda-sync">${isvg('link')}Conectar</button></div></section>
+    <section class="card"><div class="set" style="align-items:center"><div><b>Instalar o TriPro</b><span>Abre como aplicativo no iPhone, Android ou computador.</span></div><button class="btn" data-a="instalar">${isvg('install')}Instalar</button></div></section>
     <section class="card"><div class="set" style="align-items:center"><div><b>Tour pelas telas</b><span>Mostra de novo as dicas de onde fica cada coisa.</span></div><button class="btn" data-a="tour">${isvg('play')}Ver dicas</button></div></section></div></div>`);
 }
 
 /* ajuda e manual */
 const MANUAL = [
-  ['inicio', 'hoje', 'Primeiros passos', ['O TRIPRO acompanha o desenvolvimento de todos os projetos da Trium: o que foi planejado, o que foi feito e o que está em risco.', '<ul><li><b>Hoje</b> é a tela inicial: resumo do dia, o que precisa de atenção, suas tarefas e a agenda de hoje.</li><li>No topo, escolha o <b>projeto</b> (ou "Todos os projetos"). Todas as telas passam a mostrar só aquele projeto.</li><li>A barra <b>Buscar, criar ou perguntar</b> (Ctrl + K) encontra qualquer coisa, cria tarefa escrevendo uma frase e faz perguntas para a IA.</li></ul>']],
-  ['tarefas', 'checkbox', 'Criar e acompanhar tarefas', ['<ul><li>Clique em <b>Nova tarefa</b>. Só o título é obrigatório; o resto já vem preenchido (projeto escolhido, sprint ativa, prazo em 3 dias).</li><li>Jeito rápido: na barra de comando escreva, por exemplo, <i>Tela de login amanhã @Rafael #CRM !alta</i>. O TRIPRO entende o prazo, o responsável, o projeto e a prioridade.</li><li>Divida a tarefa em <b>subtarefas</b>. Ao marcar cada uma, o avanço da tarefa é calculado sozinho; quando todas terminam, ela vai para Em revisão.</li><li>Anexe imagens ou PDF de até 10 MB na aba <b>Anexos</b>.</li></ul>']],
+  ['inicio', 'hoje', 'Primeiros passos', ['O TriPro acompanha o desenvolvimento de todos os projetos da Trium: o que foi planejado, o que foi feito e o que está em risco.', '<ul><li><b>Hoje</b> é a tela inicial: resumo do dia, o que precisa de atenção, suas tarefas e a agenda de hoje.</li><li>No topo, escolha o <b>projeto</b> (ou "Todos os projetos"). Todas as telas passam a mostrar só aquele projeto.</li><li>A barra <b>Buscar, criar ou perguntar</b> (Ctrl + K) encontra qualquer coisa, cria tarefa escrevendo uma frase e faz perguntas para a IA.</li></ul>']],
+  ['tarefas', 'checkbox', 'Criar e acompanhar tarefas', ['<ul><li>Clique em <b>Nova tarefa</b>. Só o título é obrigatório; o resto já vem preenchido (projeto escolhido, sprint ativa, prazo em 3 dias).</li><li>Jeito rápido: na barra de comando escreva, por exemplo, <i>Tela de login amanhã @Rafael #CRM !alta</i>. O TriPro entende o prazo, o responsável, o projeto e a prioridade.</li><li>Divida a tarefa em <b>subtarefas</b>. Ao marcar cada uma, o avanço da tarefa é calculado sozinho; quando todas terminam, ela vai para Em revisão.</li><li>Anexe imagens ou PDF de até 10 MB na aba <b>Anexos</b>.</li></ul>']],
   ['quadro', 'board', 'Quadro (kanban)', ['<ul><li>Colunas: A fazer, Fazendo, Em revisão e Concluída.</li><li>No computador, arraste o cartão. No celular, toque nele e use "Mover para".</li><li>Ir para Concluída lança 100% e avisa a equipe por e-mail. Para reabrir, lance um avanço menor que 100%.</li></ul>']],
-  ['sprints', 'sprint', 'Sprints', ['<ul><li>Uma sprint é um ciclo de 1 a 2 semanas. Só uma fica ativa por vez.</li><li>O TRIPRO sugere puxar do backlog as tarefas que vencem antes do fim da sprint.</li><li>Ao concluir, o que sobrou vai para a próxima sprint ou volta ao backlog.</li><li>Se o tempo passa mais rápido que as entregas, aparece o alerta "sprint em risco" na tela Hoje.</li></ul>']],
-  ['agenda', 'cal', 'Agenda', ['<ul><li>Mostra reuniões, prazos das tarefas (com a cor da situação) e início e fim das sprints.</li><li>Crie um evento clicando no dia. Chame participantes: eles recebem notificação.</li><li>Em <b>Ver na minha agenda</b>, escolha Google, Outlook ou iPhone e confirme. A agenda TRIPRO aparece lá sozinha (do TRIPRO para a sua agenda).</li></ul>']],
+  ['sprints', 'sprint', 'Sprints', ['<ul><li>Uma sprint é um ciclo de 1 a 2 semanas. Só uma fica ativa por vez.</li><li>O TriPro sugere puxar do backlog as tarefas que vencem antes do fim da sprint.</li><li>Ao concluir, o que sobrou vai para a próxima sprint ou volta ao backlog.</li><li>Se o tempo passa mais rápido que as entregas, aparece o alerta "sprint em risco" na tela Hoje.</li></ul>']],
+  ['agenda', 'cal', 'Agenda', ['<ul><li>Mostra reuniões, prazos das tarefas (com a cor da situação) e início e fim das sprints.</li><li>Crie um evento clicando no dia. Chame participantes: eles recebem notificação.</li><li>Em <b>Ver na minha agenda</b>, escolha Google, Outlook ou iPhone e confirme. A agenda TriPro aparece lá sozinha (do TriPro para a sua agenda).</li></ul>']],
   ['curva', 'chart', 'Projetos e Curva S', ['<ul><li>Planejado: quanto já deveria estar pronto pelo cronograma. Realizado: o último percentual de cada tarefa, somado pelo peso.</li><li>Índice de prazo: realizado dividido por planejado. 1,00 é no prazo; abaixo de 0,90 aparece alerta.</li><li>A projeção usa o ritmo das últimas 4 semanas para estimar o término.</li></ul>']],
   ['conversas', 'chat', 'Conversas e menções', ['<ul><li>Comente em qualquer tarefa (na tela Conversas ou dentro da tarefa).</li><li>Digite <b>@</b> e escolha a pessoa, ou use o botão Mencionar. Ela recebe notificação no sino e por e-mail.</li><li>A aba "Mencionam você" junta tudo o que pediram para você.</li></ul>']],
-  ['ia', 'spark', 'Resumo do dia e IA', ['<ul><li>Todo dia às 7h15 sai um resumo geral e um para cada projeto. Ele também vai no e-mail das 7h30.</li><li>Pergunte em português, por exemplo: <i>o que está atrasado no CRM?</i> ou <i>o que o Rafael tem para esta semana?</i></li><li>A IA usa só os dados do TRIPRO. Se não souber, ela diz.</li></ul>']],
+  ['ia', 'spark', 'Resumo do dia e IA', ['<ul><li>Todo dia às 7h15 sai um resumo geral e um para cada projeto. Ele também vai no e-mail das 7h30.</li><li>Pergunte em português, por exemplo: <i>o que está atrasado no CRM?</i> ou <i>o que o Rafael tem para esta semana?</i></li><li>A IA usa só os dados do TriPro. Se não souber, ela diz.</li></ul>']],
   ['acessos', 'users', 'Usuários e acessos', ['<ul><li>Administrador: em Usuários e acessos, <b>convide</b> pelo e-mail (a pessoa entra já aprovada), <b>aprove</b> ou <b>rejeite</b> pedidos e <b>bloqueie</b> quando precisar.</li><li>Entrar: com e-mail e senha ou com o Google.</li><li>Esqueceu a senha? Use "Esqueci a senha" na tela de login.</li></ul>']],
-  ['app', 'install', 'Instalar e aparência', ['<ul><li>Configurações, Instalar: o TRIPRO vira um app no celular ou no computador.</li><li>Tema claro ou escuro no botão do topo ou em Configurações.</li><li>Sair: no menu lateral, ao lado do seu nome, ou em Configurações.</li></ul>']],
+  ['app', 'install', 'Instalar e aparência', ['<ul><li>Configurações, Instalar: o TriPro vira um app no celular ou no computador.</li><li>Tema claro ou escuro no botão do topo ou em Configurações.</li><li>Sair: no menu lateral, ao lado do seu nome, ou em Configurações.</li></ul>']],
 ];
 function telaAjuda(){
-  return casca(`${cabeca('Ajuda e manual', 'Tudo o que dá para fazer no TRIPRO, em poucas linhas', `<button class="btn btn-p" data-a="tour">${isvg('play')}Fazer o tour guiado</button>`)}
+  return casca(`${cabeca('Ajuda e manual', 'Tudo o que dá para fazer no TriPro, em poucas linhas', `<button class="btn btn-p" data-a="tour">${isvg('play')}Fazer o tour guiado</button>`)}
     <div class="man"><nav>${MANUAL.map(([id, ico, t]) => `<a href="#m-${id}" data-a="man-ir" data-id="${id}">${isvg(ico)}${t}</a>`).join('')}</nav>
     <section class="card">${MANUAL.map(([id, ico, t, ps], i) => `<details id="m-${id}" ${i === 0 ? 'open' : ''}><summary><span class="sico">${isvg(ico)}</span>${t}<span class="ch2">${isvg('down')}</span></summary><div class="tx2">${ps.map(p => p.startsWith('<') ? p : `<p>${p}</p>`).join('')}</div></details>`).join('')}</section></div>
     <section class="card card-b row"><span class="hic" style="width:32px;height:32px;border-radius:9px;display:grid;place-items:center;background:var(--sky);color:var(--blue)">${isvg('spark')}</span><div style="flex:1;min-width:200px"><b style="color:var(--ink)">Ainda com dúvida?</b><div class="sub">Pergunte para a IA na barra de comando (Ctrl + K) ou fale com o administrador.</div></div><button class="btn" data-a="cmd-ia">Perguntar à IA</button></section>`);
@@ -1520,7 +1521,7 @@ function telaPrevisoes(){
   return casca(`${cabeca('Previsões', 'Quando cada projeto termina de verdade, com base no histórico da equipe · ' + escopo())}
     <div class="g2">${ps.map(p => cardPrevisao(p, D.tarefas.filter(x => x.projeto_id === p.id))).join('') || '<div class="card card-b empty">Nenhum projeto ativo.</div>'}</div>
     <section class="card"><div class="card-h"><span class="hic">${isvg('chain')}</span><h2>Atrasos em cadeia</h2><span class="sp"></span><span class="sub">${ch.length}</span></div><div class="card-b list" style="padding-top:2px;padding-bottom:2px">
-      ${ch.map(c => `<div class="li"><div class="bx" data-a="ver" data-id="${esc(c.x.id)}"><b>${esc(c.x.entrega)}</b><span class="sub">espera <b>${esc(c.causa.entrega)}</b> (${esc(c.causa.responsavel)}) · previsão ${brc(c.prev)} no lugar de ${brc(c.x.fim_previsto)}</span></div><span class="pill p-crit">+${c.atraso} dia${c.atraso > 1 ? 's' : ''}</span></div>`).join('') || `<p class="empty">Nenhuma tarefa sendo empurrada por outra. Ligue tarefas em "Depende de" no cadastro para o TRIPRO calcular o efeito dominó.</p>`}
+      ${ch.map(c => `<div class="li"><div class="bx" data-a="ver" data-id="${esc(c.x.id)}"><b>${esc(c.x.entrega)}</b><span class="sub">espera <b>${esc(c.causa.entrega)}</b> (${esc(c.causa.responsavel)}) · previsão ${brc(c.prev)} no lugar de ${brc(c.x.fim_previsto)}</span></div><span class="pill p-crit">+${c.atraso} dia${c.atraso > 1 ? 's' : ''}</span></div>`).join('') || `<p class="empty">Nenhuma tarefa sendo empurrada por outra. Ligue tarefas em "Depende de" no cadastro para o TriPro calcular o efeito dominó.</p>`}
       ${ps.map(p => { const f = fimProj(p); return f && f.d > 0 ? `<div class="note" style="margin:10px 0">${isvg('alert')}<span><b>${esc(p.nome)}</b>: somando calibração e dependências, o término vai de ${brc(f.plano)} para <b>${brc(f.prev)}</b> (+${f.d} dias).</span></div>` : ''; }).join('')}
     </div></section>
     <div class="g2">${tab(C.resp, 'Calibração por pessoa')}${tab(C.mod, 'Calibração por módulo')}</div>
@@ -1561,7 +1562,7 @@ ROTAS.push('previsoes', 'decisoes');
 { const ts0 = telaSprints;
   telaSprints = function(){ const alvo = proximaSprintAlvo();
     return ts0().replace('<button class="btn btn-p" data-a="sprint-nova">', `<button class="btn" data-a="sprint-auto">${isvg('spark')}Montar ${esc(alvo.nome)} automaticamente</button><button class="btn btn-p" data-a="sprint-nova">`)
-      .replace('<h2>Sugestão</h2></div><div class="card-b">', `<h2>Sugestão</h2></div><div class="card-b"><div class="note" style="margin:0 0 12px">${isvg('spark')}<span>O TRIPRO monta a <b>${esc(alvo.nome)}</b> pela capacidade de cada pessoa, pelas prioridades e pelas dependências. <button class="btn btn-sm btn-p" data-a="sprint-auto" style="margin-left:6px">Montar agora</button></span></div>`); };
+      .replace('<h2>Sugestão</h2></div><div class="card-b">', `<h2>Sugestão</h2></div><div class="card-b"><div class="note" style="margin:0 0 12px">${isvg('spark')}<span>O TriPro monta a <b>${esc(alvo.nome)}</b> pela capacidade de cada pessoa, pelas prioridades e pelas dependências. <button class="btn btn-sm btn-p" data-a="sprint-auto" style="margin-left:6px">Montar agora</button></span></div>`); };
 }
 { const tc = telaConta;
   telaConta = function(){ let h = tc(); if (!admin()) return h;
@@ -1716,7 +1717,7 @@ document.addEventListener('input', e => { if (e.target.dataset && e.target.datas
 
 /* manual e tour */
 MANUAL.splice(6, 0,
-  ['previsao', 'dice', 'Previsões e prazo realista', ['<ul><li><b>Chance de cumprir o prazo</b>: o TRIPRO simula 2.000 cenários com o avanço real de cada semana e mostra a data mais provável (P50) e a data com folga (P85). Prometa a P85.</li><li><b>Calibração</b>: compara o que cada pessoa e cada módulo planejou com o que levou de verdade. Ao cadastrar uma tarefa, sugere um prazo realista.</li><li><b>Dependências</b>: em Editar, use "Depende de". Se a anterior atrasa, a tela Previsões mostra o efeito em cadeia até o fim do projeto.</li></ul>']],
+  ['previsao', 'dice', 'Previsões e prazo realista', ['<ul><li><b>Chance de cumprir o prazo</b>: o TriPro simula 2.000 cenários com o avanço real de cada semana e mostra a data mais provável (P50) e a data com folga (P85). Prometa a P85.</li><li><b>Calibração</b>: compara o que cada pessoa e cada módulo planejou com o que levou de verdade. Ao cadastrar uma tarefa, sugere um prazo realista.</li><li><b>Dependências</b>: em Editar, use "Depende de". Se a anterior atrasa, a tela Previsões mostra o efeito em cadeia até o fim do projeto.</li></ul>']],
   ['bloqueio', 'block', 'Bloqueios e decisões', ['<ul><li>Escreva num comentário "travado", "aguardando" ou "sem acesso": a tarefa ganha a marca <b>Bloqueada</b>. "Liberado" ou "resolvido" tira a marca.</li><li>Comentários com "decidimos", "ficou definido" ou "aprovado pelo cliente" viram registro na tela <b>Decisões</b>.</li><li>Em Decisões, <b>Colar ata</b> separa o que foi decidido numa reunião.</li></ul>']],
   ['sprintauto', 'spark', 'Sprint automática', ['<ul><li>Em Sprints, <b>Montar automaticamente</b> escolhe as tarefas pela prioridade e pelo prazo, respeitando dependências, bloqueios e a capacidade de cada pessoa (80% dos dias úteis, ajustado pelo histórico).</li><li>Você revisa, desmarca o que quiser e aplica.</li></ul>']],
   ['github', 'git', 'GitHub, custo e cliente', ['<ul><li>Cada tarefa tem um código (ex.: <code>#A04</code>). Cite no commit: a tarefa vai para Fazendo e mostra o commit. "fecha #A04" ou PR aceito leva para Em revisão.</li><li><b>Custo</b> (só administradores): cadastre o valor da hora em Configurações e lance as horas no avanço. O projeto mostra orçamento, valor entregue e custo real.</li><li><b>Cliente</b>: no projeto, Compartilhar com cliente gera um link só de leitura, que pode ser desativado a qualquer hora.</li></ul>']]);
@@ -1895,7 +1896,7 @@ const gcal = e => { const f = d => new Date(d).toISOString().replace(/[-:]/g, ''
 const ocal = e => 'https://outlook.office.com/calendar/0/deeplink/compose?' + new URLSearchParams({path:'/calendar/action/compose', rru:'addevent', subject:e.titulo, startdt:e.dia_inteiro ? ld(e.inicio) : new Date(e.inicio).toISOString(), enddt:e.dia_inteiro ? iso(T(ld(e.fim)) + DIA) : new Date(e.fim).toISOString(), allday:String(!!e.dia_inteiro), body:e.descricao || '', location:e.local || ''});
 function baixarIcs(e){
   const f = d => new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''), q = s => String(s || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
-  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Trium//TRIPRO//PT-BR', 'BEGIN:VEVENT', `UID:evento-${e.id}@tripro`, `DTSTAMP:${f(Date.now())}`,
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Trium//TriPro//PT-BR', 'BEGIN:VEVENT', `UID:evento-${e.id}@tripro`, `DTSTAMP:${f(Date.now())}`,
     ...(e.dia_inteiro ? [`DTSTART;VALUE=DATE:${ld(e.inicio).replace(/-/g, '')}`, `DTEND;VALUE=DATE:${iso(T(ld(e.fim)) + DIA).replace(/-/g, '')}`] : [`DTSTART:${f(e.inicio)}`, `DTEND:${f(e.fim)}`]),
     `SUMMARY:${q(e.titulo)}`, ...(e.local ? [`LOCATION:${q(e.local)}`] : []), ...(e.descricao ? [`DESCRIPTION:${q(e.descricao)}`] : []), 'END:VEVENT', 'END:VCALENDAR'];
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([L.join('\r\n')], {type:'text/calendar'})); a.download = slug(e.titulo) + '.ics'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
@@ -1935,8 +1936,8 @@ function modalEvento(id, dia){
 }
 const AGENDAS = url => { const web = url.replace(/^https?:/, 'webcal:'), enc = encodeURIComponent(url);
   return {google:['Google Agenda', 'cal', 'https://calendar.google.com/calendar/render?cid=' + encodeURIComponent(web)],
-    empresa:['Outlook da empresa', 'mail', 'https://outlook.office.com/calendar/0/addfromweb?url=' + enc + '&name=TRIPRO'],
-    pessoal:['Outlook pessoal (Hotmail)', 'mail', 'https://outlook.live.com/calendar/0/addfromweb?url=' + enc + '&name=TRIPRO'],
+    empresa:['Outlook da empresa', 'mail', 'https://outlook.office.com/calendar/0/addfromweb?url=' + enc + '&name=TriPro'],
+    pessoal:['Outlook pessoal (Hotmail)', 'mail', 'https://outlook.live.com/calendar/0/addfromweb?url=' + enc + '&name=TriPro'],
     apple:['iPhone, iPad ou Mac', 'cal', web]}; };
 function agendaSugerida(){
   const em = norm((USER && USER.email) || ''), dom = em.split('@')[1] || '', prov = USER && USER.app_metadata && USER.app_metadata.provider;
@@ -1946,13 +1947,13 @@ function agendaSugerida(){
   return prov === 'google' ? 'google' : 'empresa';
 }
 async function modalSync(novo){
-  abrir(`${cab('Ver o TRIPRO na sua agenda')}<div class="mb"><div class="row"><span class="spin"></span><span class="sub">Preparando…</span></div></div>`);
+  abrir(`${cab('Ver o TriPro na sua agenda')}<div class="mb"><div class="row"><span class="spin"></span><span class="sub">Preparando…</span></div></div>`);
   let url; try { url = await API.linkAgenda(novo); } catch (err){ fechar(); toast('Não foi possível preparar: ' + err.message, true); return; }
   if (!$('#dlg')) return;
   const A = AGENDAS(url), k = agendaSugerida(), [nome, , href] = A[k];
   const op = key => { const [t, ico, h] = A[key]; return `<a class="cmd-o" style="border:1px solid var(--line);border-radius:12px;padding:10px 12px" href="${esc(h)}" target="_blank" rel="noopener" data-a="sync-ok">${`<span class="ico">${isvg(ico)}</span>`}<div><b>${t}</b></div>${isvg('arrow')}</a>`; };
-  $('#dlg').innerHTML = `${cab('Ver o TRIPRO na sua agenda')}<div class="mb" style="gap:14px">
-    <p>Um clique: abre a sua agenda e você só confirma <b>Adicionar</b>. Depois disso, reuniões, prazos e sprints do TRIPRO aparecem lá sozinhos.</p>
+  $('#dlg').innerHTML = `${cab('Ver o TriPro na sua agenda')}<div class="mb" style="gap:14px">
+    <p>Um clique: abre a sua agenda e você só confirma <b>Adicionar</b>. Depois disso, reuniões, prazos e sprints do TriPro aparecem lá sozinhos.</p>
     <a class="btn btn-p" style="height:52px;font-size:15px" href="${esc(href)}" target="_blank" rel="noopener" data-a="sync-ok">${isvg('cal', 18)}Adicionar ao ${esc(nome)}</a>
     <p class="sub" style="text-align:center;margin-top:-6px">Escolhido pelo seu e-mail (${esc(USER.email)}).</p>
     <details><summary class="sub" style="cursor:pointer;font-weight:600;color:var(--blue)">Usa outra agenda?</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">${Object.keys(A).filter(x => x !== k).map(op).join('')}
@@ -1969,7 +1970,7 @@ function modalConvite(){
   $('#fcv').addEventListener('submit', async e => { e.preventDefault(); const em = $('#cv-e').value.trim().toLowerCase();
     if (MEMBROS.some(m => m.email === em)){ toast('Essa pessoa já tem acesso. Veja nas abas de usuários.', true); return; }
     try { await API.convidar({email:em, nome:$('#cv-n').value.trim() || null, papel:$('#cv-p').value}); await recarregar(true); UI.utab = 'convites'; fechar(); render();
-      abrir(`${cab('Convite criado')}<div class="mb"><p>Agora envie o link do TRIPRO para <b>${esc(em)}</b>. Quando a pessoa entrar com esse e-mail, já cai aprovada.</p><div class="copy"><input class="inp" id="ics-url" readonly value="${esc(location.origin + location.pathname)}"><button class="btn" data-a="copiar">Copiar link</button></div></div><div class="mf"><span class="sp"></span><button class="btn btn-p" data-a="fechar">Pronto</button></div>`);
+      abrir(`${cab('Convite criado')}<div class="mb"><p>Agora envie o link do TriPro para <b>${esc(em)}</b>. Quando a pessoa entrar com esse e-mail, já cai aprovada.</p><div class="copy"><input class="inp" id="ics-url" readonly value="${esc(location.origin + location.pathname)}"><button class="btn" data-a="copiar">Copiar link</button></div></div><div class="mf"><span class="sp"></span><button class="btn btn-p" data-a="fechar">Pronto</button></div>`);
     } catch (err){ toast('Não foi possível convidar: ' + (/duplicate|unique/i.test(err.message) ? 'já existe convite para esse e-mail.' : err.message), true); } });
 }
 
@@ -1983,7 +1984,7 @@ function opsCmd(){
     ops.push({g:'Ações rápidas', ico:'plus', t:'Nova tarefa', s:'Abre o formulário completo', a:() => modalTarefa()});
     ops.push({g:'Ações rápidas', ico:'cal', t:'Novo evento', s:'Reunião ou compromisso na agenda', a:() => modalEvento(null, hoje())});
     ops.push({g:'Ações rápidas', ico:'trend', t:'Lançar avanço', s:'Atualize o percentual de uma tarefa', a:() => modalAvanco()});
-    ['O que está atrasado?', 'O que vence nesta semana?', 'O que está em revisão?'].forEach(p => ops.push({g:'Pergunte à IA', ico:'spark', t:p, s:'Resposta com os dados do TRIPRO', a:() => perguntarCmd(p)}));
+    ['O que está atrasado?', 'O que vence nesta semana?', 'O que está em revisão?'].forEach(p => ops.push({g:'Pergunte à IA', ico:'spark', t:p, s:'Resposta com os dados do TriPro', a:() => perguntarCmd(p)}));
     ops.push({g:'Dica', ico:'help', t:'Escreva uma frase para criar tarefa', s:'Ex.: Tela de login amanhã @Rafael #CRM !alta', a:() => { const i = $('#cmd-i'); i.value = 'Tela de login amanhã @'; i.dispatchEvent(new Event('input')); i.focus(); }});
     return ops;
   }
@@ -2010,7 +2011,7 @@ function abrirCmd(pre = ''){
 function pintarCmd(){
   const l = $('#cmd-l'); if (!l) return;
   CMD.ops = opsCmd(); let g = '', html = '';
-  if (CMD.carregando) html += `<div class="ans"><span class="row"><span class="spin"></span>Pensando com os dados do TRIPRO…</span></div>`;
+  if (CMD.carregando) html += `<div class="ans"><span class="row"><span class="spin"></span>Pensando com os dados do TriPro…</span></div>`;
   else if (CMD.resp) html += `<div class="ans">${textoRico(CMD.resp)}</div>`;
   CMD.ops.forEach((o, k) => { if (o.g !== g){ g = o.g; html += `<div class="cmd-g">${esc(g)}</div>`; } html += `<button class="cmd-o${k === CMD.sel ? ' on' : ''}" data-a="cmd-op" data-id="${k}"><span class="ico">${isvg(o.ico)}</span><div><b>${esc(o.t)}</b><span>${esc(o.s)}</span></div>${k === CMD.sel ? '<kbd>Enter</kbd>' : ''}</button>`; });
   l.innerHTML = html;
@@ -2040,7 +2041,7 @@ const TOUR = [
   ['[data-tour="cmd"]', 'Barra inteligente', 'Busque qualquer coisa, crie tarefa escrevendo uma frase ("Tela de login amanhã @Rafael") ou pergunte à IA. Atalho: Ctrl + K.'],
   ['[data-tour="nova"]', 'Nova tarefa', 'O formulário já vem preenchido com projeto, sprint ativa e prazo. Só o título é obrigatório.'],
   ['[data-tour="resumo"]', 'Resumo do dia', 'Todo dia às 7h15 a IA resume o geral e cada projeto. Atualize quando quiser.'],
-  ['[data-tour="atencao"]', 'Precisa de atenção', 'O TRIPRO aponta atrasos, tarefas paradas, sprint em risco e projetos abaixo do plano, com o botão para agir.'],
+  ['[data-tour="atencao"]', 'Precisa de atenção', 'O TriPro aponta atrasos, tarefas paradas, sprint em risco e projetos abaixo do plano, com o botão para agir.'],
   ['[data-tour="notif"]', 'Notificações', 'Quando alguém mencionar você com @ ou te chamar para um evento, aparece aqui e chega por e-mail.'],
   ['[data-tour="tema"]', 'Claro ou escuro', 'Troque o tema quando quiser. A escolha fica salva neste aparelho.'],
   ['[data-tour="ajuda"]', 'Ajuda e manual', 'O manual explica cada tela em poucas linhas. O tour pode ser repetido em Configurações.'],
@@ -2075,15 +2076,15 @@ function tour(i = 0){
 /* ---------- instalar (PWA) ---------- */
 let PROMPT = null;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); PROMPT = e; });
-window.addEventListener('appinstalled', () => { PROMPT = null; toast('TRIPRO instalado.'); });
+window.addEventListener('appinstalled', () => { PROMPT = null; toast('TriPro instalado.'); });
 const instalado = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 async function instalar(){
-  if (instalado()){ toast('O TRIPRO já está instalado neste aparelho.'); return; }
+  if (instalado()){ toast('O TriPro já está instalado neste aparelho.'); return; }
   if (PROMPT){ PROMPT.prompt(); const r = await PROMPT.userChoice; if (r.outcome === 'accepted') PROMPT = null; return; }
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  abrir(`${cab('Instalar o TRIPRO')}<div class="mb">${ios
+  abrir(`${cab('Instalar o TriPro')}<div class="mb">${ios
     ? `<p>No iPhone ou iPad, pelo <b>Safari</b>:</p><div class="steps"><div><span>Toque em <b>Compartilhar</b> (o quadrado com a seta para cima).</span></div><div><span>Escolha <b>Adicionar à Tela de Início</b>.</span></div><div><span>Toque em <b>Adicionar</b>.</span></div></div>`
-    : `<p>No Android ou no computador, pelo <b>Chrome</b> ou <b>Edge</b>:</p><div class="steps"><div><span>Abra o menu do navegador (os três pontinhos no canto).</span></div><div><span>Escolha <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</span></div><div><span>Confirme. O TRIPRO abre em janela própria.</span></div></div>`}
+    : `<p>No Android ou no computador, pelo <b>Chrome</b> ou <b>Edge</b>:</p><div class="steps"><div><span>Abra o menu do navegador (os três pontinhos no canto).</span></div><div><span>Escolha <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</span></div><div><span>Confirme. O TriPro abre em janela própria.</span></div></div>`}
     <p class="sub">É o mesmo site, sempre atualizado. Não precisa de loja de aplicativos.</p></div>`);
 }
 
@@ -2193,7 +2194,7 @@ document.addEventListener('click', async e => {
       case 'ev-excluir': if (el.dataset.ok){ await API.delEvento(id); fechar(); toast('Evento excluído.'); await recarregar(); } else { el.dataset.ok = '1'; el.textContent = 'Confirmar exclusão'; } break;
       case 'ev-ics': baixarIcs(D.eventos.find(k => k.id == id)); break;
       case 'agenda-sync': modalSync(false); break;
-      case 'sync-ok': LS.set('tripro-agenda-ok', '1'); setTimeout(() => toast('Na tela que abriu, confirme Adicionar. A agenda TRIPRO aparece em alguns minutos.'), 300); break;
+      case 'sync-ok': LS.set('tripro-agenda-ok', '1'); setTimeout(() => toast('Na tela que abriu, confirme Adicionar. A agenda TriPro aparece em alguns minutos.'), 300); break;
       case 'agenda-novo-link': if (el.dataset.ok){ modalSync(true); } else { el.dataset.ok = '1'; el.textContent = 'O link antigo para de funcionar. Confirmar?'; } break;
       case 'copiar': { const i = $('#ics-url'); i.select(); try { await navigator.clipboard.writeText(i.value); } catch (x){ document.execCommand('copy'); } el.textContent = 'Copiado'; break; }
       case 'pref': { const on = el.getAttribute('aria-checked') !== 'true'; el.setAttribute('aria-checked', String(on));
@@ -2201,7 +2202,7 @@ document.addEventListener('click', async e => {
         try { await API.preferencias(c, r); toast('Preferência salva.'); } catch (err){ el.setAttribute('aria-checked', String(!on)); throw err; } break; }
       case 'u-tab': UI.utab = id; render(); break;
       case 'u-convidar': modalConvite(); break;
-      case 'u-link': { try { await navigator.clipboard.writeText(location.origin + location.pathname); toast('Link do TRIPRO copiado. Envie para a pessoa.'); } catch (x){ toast(location.origin + location.pathname); } break; }
+      case 'u-link': { try { await navigator.clipboard.writeText(location.origin + location.pathname); toast('Link do TriPro copiado. Envie para a pessoa.'); } catch (x){ toast(location.origin + location.pathname); } break; }
       case 'u-conv-del': await API.delConvite(id); await recarregar(true); render(); toast('Convite removido.'); break;
       case 'u-aprovar': { const s = document.getElementById('papel-' + id), papel = s ? s.value : null;
         await API.setMembro(id, {status:'aprovado', aprovado_em:new Date().toISOString(), aprovado_por:USER.email, ...(papel ? {papel} : {})}); await recarregar(true); render(); toast(UI.utab === 'bloqueado' ? 'Acesso desbloqueado.' : 'Acesso aprovado. A pessoa foi notificada.'); break; }

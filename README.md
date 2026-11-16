@@ -1,4 +1,4 @@
-# TRIPRO
+# TriPro
 
 Acompanhamento de **todos os projetos da Trium** (aplicação independente, sem ligação com os sistemas que ela acompanha): carteira de projetos, Curva S por projeto (planejado, realizado e projeção de término), entregas da semana, atrasos, avanço por módulo e comentários da equipe. E-mail a cada entrega concluída e resumo diário às 7h30.
 
@@ -28,7 +28,7 @@ Funciona no navegador e pode ser **instalado como app** (PWA) no Android, no iPh
 2. Crie uma API key.
 3. No Supabase: *Edge Functions › Secrets*, cadastre:
    - `RESEND_API_KEY` = a chave do Resend
-   - `EMAIL_REMETENTE` = `TRIPRO <projetos@triumsistemas.com.br>`
+   - `EMAIL_REMETENTE` = `TriPro <projetos@triumsistemas.com.br>`
    - `LINK_PAINEL` = endereço do GitHub Pages
 
 ### 3. GitHub Pages
